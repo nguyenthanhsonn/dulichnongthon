@@ -109,16 +109,16 @@ export function DestinationGrid() {
   };
 
   return (
-    <section id="destinations" className="py-20 bg-[#F2F7F4] border-t border-[#1F6B45]/10">
+    <section id="destinations" className="destinations-section">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
+        <div className="destination-heading space-y-3" data-aos="fade-up">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1F6B45]/10 text-[#1F6B45] text-xs font-semibold">
             <Compass className="h-3.5 w-3.5" />
             <span>Danh sách đề cử chính thức</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-[#1B2B22] tracking-tight">
-            35 Điểm Đến Du Lịch Nông Thôn
+            Tìm một miền quê để thương.
           </h2>
           <p className="text-sm sm:text-base text-[#4B5E52]">
             Khám phá vẻ đẹp bình dị của các làng nghề, trang trại hữu cơ và danh thắng sinh thái trên khắp 3 miền Tổ quốc.
@@ -126,8 +126,8 @@ export function DestinationGrid() {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="bg-white rounded-3xl p-4 sm:p-6 border border-[#1F6B45]/15 shadow-sm space-y-4">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        <div className="destination-filters bg-[#e2ecdc] rounded-3xl p-4 sm:p-6 border border-[#1F6B45]/15 shadow-sm space-y-4">
+          <div className="filter-layout flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
             {/* Region Filter Chips */}
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -135,7 +135,7 @@ export function DestinationGrid() {
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   selectedRegion === "all"
                     ? "bg-[#1F6B45] text-white shadow-xs"
-                    : "bg-[#FBF8F0] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
+                    : "bg-[#eff4e9] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
                 }`}
               >
                 Tất cả ({counts.all})
@@ -145,7 +145,7 @@ export function DestinationGrid() {
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   selectedRegion === "north"
                     ? "bg-[#1F6B45] text-white shadow-xs"
-                    : "bg-[#FBF8F0] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
+                    : "bg-[#eff4e9] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
                 }`}
               >
                 Miền Bắc ({counts.north})
@@ -155,7 +155,7 @@ export function DestinationGrid() {
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   selectedRegion === "central"
                     ? "bg-[#1F6B45] text-white shadow-xs"
-                    : "bg-[#FBF8F0] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
+                    : "bg-[#eff4e9] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
                 }`}
               >
                 Miền Trung ({counts.central})
@@ -165,7 +165,7 @@ export function DestinationGrid() {
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   selectedRegion === "south"
                     ? "bg-[#1F6B45] text-white shadow-xs"
-                    : "bg-[#FBF8F0] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
+                    : "bg-[#eff4e9] hover:bg-[#EBF5EE] text-[#1B2B22] border border-[#1F6B45]/15"
                 }`}
               >
                 Miền Nam ({counts.south})
@@ -173,23 +173,25 @@ export function DestinationGrid() {
             </div>
 
             {/* Search Input & Sort Dropdown */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="relative min-w-[240px]">
+            <div className="filter-controls flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="filter-search relative min-w-0 flex-1">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B5E52]" />
                 <input
                   type="text"
+                  aria-label="Tìm điểm đến hoặc tỉnh thành"
                   placeholder="Tìm điểm đến, tỉnh thành..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-full bg-[#FBF8F0] border border-[#1F6B45]/20 text-xs sm:text-sm font-medium text-[#1B2B22] placeholder:text-[#4B5E52]/60 focus:outline-none focus:ring-2 focus:ring-[#1F6B45]"
+                  className="w-full pl-9 pr-4 py-2 rounded-full bg-[#eff4e9] border border-[#1F6B45]/20 text-xs sm:text-sm font-medium text-[#1B2B22] placeholder:text-[#4B5E52]/60 focus:outline-none focus:ring-2 focus:ring-[#1F6B45]"
                 />
               </div>
 
               <div className="relative">
                 <select
+                  aria-label="Sắp xếp điểm đến"
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full bg-[#FBF8F0] border border-[#1F6B45]/20 text-xs sm:text-sm text-[#1B2B22] font-bold focus:outline-none focus:ring-2 focus:ring-[#1F6B45] cursor-pointer"
+                  className="w-full appearance-none pl-3.5 pr-8 py-2 rounded-full bg-[#eff4e9] border border-[#1F6B45]/20 text-xs sm:text-sm text-[#1B2B22] font-bold focus:outline-none focus:ring-2 focus:ring-[#1F6B45] cursor-pointer"
                 >
                   <option value="votes-desc">Lượt vote cao nhất</option>
                   <option value="name-asc">Tên A-Z</option>
@@ -204,7 +206,7 @@ export function DestinationGrid() {
         {/* 35 Destination Cards Grid (Phân trang 8 thẻ/trang: 4 cột desktop, 2 cột tablet, 1 cột mobile) */}
         {totalItems > 0 ? (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="destination-cards grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
               {currentItems.map((dest) => (
                 <DestinationCard
                   key={dest.id}
@@ -215,14 +217,14 @@ export function DestinationGrid() {
             </div>
 
             {/* Phân trang (Pagination Controls) */}
-            <div className="pt-6 border-t border-[#1F6B45]/15 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="pt-6 border-t border-[#1F6B45]/15 flex flex-col lg:flex-row items-center justify-between gap-4">
               {/* Thống kê số lượng đang xem */}
               <p className="text-xs sm:text-sm text-[#4B5E52] font-semibold">
                 Hiển thị <span className="text-[#1F6B45] font-black">{startIndex + 1} - {endIndex}</span> trong tổng số <span className="text-[#1F6B45] font-black">{totalItems}</span> điểm đến
               </p>
 
               {/* Điều khiển chuyển trang */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="destination-pagination flex items-center gap-1.5 sm:gap-2">
                 {/* Về trang đầu */}
                 <button
                   onClick={() => handlePageChange(1)}
@@ -230,12 +232,14 @@ export function DestinationGrid() {
                   className="p-2 rounded-xl bg-white border border-[#1F6B45]/15 text-[#1B2B22] hover:bg-[#EBF5EE] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
                   aria-label="Về trang đầu"
                   title="Trang đầu"
+                  data-pagination-edge
                 >
                   <ChevronsLeft className="h-4 w-4" />
                 </button>
 
                 {/* Trang trước */}
                 <button
+                  aria-label="Trang trước"
                   onClick={() => handlePageChange(safeCurrentPage - 1)}
                   disabled={safeCurrentPage === 1}
                   className="px-3 py-2 rounded-xl bg-white border border-[#1F6B45]/15 text-xs font-bold text-[#1B2B22] hover:bg-[#EBF5EE] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
@@ -249,6 +253,8 @@ export function DestinationGrid() {
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                     <button
                       key={pageNum}
+                      aria-current={pageNum === safeCurrentPage ? "page" : undefined}
+                      aria-label={`Trang ${pageNum}`}
                       onClick={() => handlePageChange(pageNum)}
                       className={`h-9 w-9 rounded-xl text-xs font-black transition-all cursor-pointer ${
                         pageNum === safeCurrentPage
@@ -263,6 +269,7 @@ export function DestinationGrid() {
 
                 {/* Trang sau */}
                 <button
+                  aria-label="Trang sau"
                   onClick={() => handlePageChange(safeCurrentPage + 1)}
                   disabled={safeCurrentPage === totalPages}
                   className="px-3 py-2 rounded-xl bg-white border border-[#1F6B45]/15 text-xs font-bold text-[#1B2B22] hover:bg-[#EBF5EE] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
@@ -278,6 +285,7 @@ export function DestinationGrid() {
                   className="p-2 rounded-xl bg-white border border-[#1F6B45]/15 text-[#1B2B22] hover:bg-[#EBF5EE] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-2xs cursor-pointer"
                   aria-label="Đến trang cuối"
                   title="Trang cuối"
+                  data-pagination-edge
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </button>

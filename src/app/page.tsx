@@ -1,3 +1,6 @@
+import { PageBackground } from "@/components/page-background";
+import { SectionDivider } from "@/components/section-divider";
+import { AnimationProvider } from "@/components/animation-provider";
 import { VotingProvider } from "@/context/voting-context";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
@@ -17,38 +20,24 @@ import { BackToTop } from "@/components/back-to-top";
 export default function Home() {
   return (
     <VotingProvider>
-      <div className="relative min-h-screen flex flex-col bg-[#FBF8F0] text-[#1B2B22]">
-        {/* 0. Thanh tiến trình cuộn trang siêu mượt */}
+      <AnimationProvider />
+      <div className="page-shell relative isolate min-h-screen flex flex-col text-[#1B2B22]">
+        <PageBackground />
         <ScrollProgress />
-
-        {/* 1. Floating Pill-shaped Navbar */}
         <Navbar />
-
-        {/* Main Content */}
         <main className="flex-1">
-          {/* 2. Hero with background landscape slideshow */}
           <Hero />
-
-          {/* 3. Stats Band with checkerboard grid alternating photo tiles and solid green tiles */}
           <StatsGrid />
-
-          {/* 4. Top 3 Leaderboard (Rank 1 highlighted in orange-yellow #F5A623) */}
+          <SectionDivider fill="var(--bg-sage)" className="divider-to-sage" />
           <Top3Leaderboard />
-
-          {/* 5. Destination Grid (35 cards có phân trang 8 thẻ/trang) */}
+          <SectionDivider fill="var(--bg-base)" className="divider-to-base" />
           <DestinationGrid />
-
-          {/* 6. How To Vote (3 steps) */}
+          <SectionDivider fill="var(--bg-sky)" className="divider-to-sky" />
           <HowToVote />
         </main>
-
-        {/* 7. Footer: Dark green #1B2B22, logo, links, copyright */}
+        <SectionDivider fill="var(--bg-deep)" className="divider-to-deep" />
         <Footer />
-
-        {/* Nút Cuộn về đầu trang (Back to top) */}
         <BackToTop />
-
-        {/* Modals & Interactivity */}
         <LoginModal />
         <VoteModal />
         <LeaderboardModal />

@@ -1,128 +1,62 @@
 "use client";
 
-import React from "react";
+import { useEffect, useRef } from "react";
+import { BookOpen, CalendarDays, Check, Mail, ShieldCheck, Trophy, X } from "lucide-react";
 import { useVoting } from "@/context/voting-context";
-import { X, BookOpen, CheckCircle, ShieldCheck, Calendar, Trophy, Mail } from "lucide-react";
 
 export function RulesModal() {
   const { rulesModalOpen, setRulesModalOpen } = useVoting();
+  const panel = useRef<HTMLDivElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!rulesModalOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButton.current?.focus();
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [rulesModalOpen]);
 
   if (!rulesModalOpen) return null;
+  const close = () => setRulesModalOpen(false);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
-      {/* Modal Card Glassmorphism */}
-      <div className="relative w-full max-w-2xl max-h-[90vh] rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] flex flex-col overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-5 border-b border-black/5 bg-white/50 backdrop-blur-md flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-[#1F6B45]/15 border border-[#1F6B45]/20 flex items-center justify-center text-[#1F6B45] shadow-xs">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-[#1B2B22]">
-                Thể Lệ Cuộc Thi Bình Chọn
-              </h3>
-              <p className="text-xs text-[#4B5E52] font-medium">
-                Quy chế chính thức từ Ban Tổ chức Cuộc thi Du lịch Nông thôn 2026
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setRulesModalOpen(false)}
-            className="p-2 rounded-full bg-white/60 hover:bg-white text-[#1B2B22] border border-white/80 shadow-xs backdrop-blur-md transition-all cursor-pointer"
-            aria-label="Đóng"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="overflow-y-auto p-6 space-y-6 text-sm text-[#1B2B22] leading-relaxed flex-1">
-          {/* Section 1 */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-base text-[#1F6B45] flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              1. Thời gian bình chọn
-            </h4>
-            <p className="text-[#4B5E52] leading-relaxed">
-              Hệ thống bình chọn trực tuyến mở từ <strong>00:00 ngày 15/10/2026</strong> đến <strong>23:59 ngày 20/11/2026</strong>. Kết quả bình chọn sẽ được công bố chính thức tại Lễ Trao giải Du lịch Nông thôn Việt Nam.
-            </p>
-          </div>
-
-          {/* Section 2 */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-base text-[#1F6B45] flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              2. Quy định tài khoản & Lượt bình chọn
-            </h4>
-            <ul className="space-y-2 text-[#4B5E52] list-disc list-inside">
-              <li>Mỗi người tham gia sử dụng số điện thoại di động chính chủ tại Việt Nam để đăng nhập và xác thực mã OTP.</li>
-              <li>Mỗi số điện thoại được cấp <strong>tối đa 3 lượt bình chọn</strong> trong suốt thời gian diễn ra cuộc thi.</li>
-              <li>Mỗi lượt bình chọn chỉ được dành cho <strong>1 điểm đến duy nhất</strong> (không được dồn cả 3 lượt cho cùng 1 điểm đến).</li>
-              <li>Lượt bình chọn đã xác nhận thành công sẽ không thể thay đổi hoặc thu hồi.</li>
-            </ul>
-          </div>
-
-          {/* Section 3 */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-base text-[#1F6B45] flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-[#F5A623]" />
-              3. Cơ cấu giải thưởng & Tôn vinh
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="p-3.5 rounded-2xl bg-white/75 backdrop-blur-md border border-[#F5A623]/50 shadow-2xs">
-                <span className="font-bold text-xs text-[#F5A623] block uppercase tracking-wider">Giải Quán Quân</span>
-                <p className="font-black text-sm text-[#1B2B22] mt-0.5">Top 1 Điểm đến</p>
-                <p className="text-[11px] text-[#4B5E52] mt-1 font-medium">Bằng khen Bộ NN&PTNT + Cúp vàng danh dự</p>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-white/75 backdrop-blur-md border border-[#7CB342]/50 shadow-2xs">
-                <span className="font-bold text-xs text-[#1F6B45] block uppercase tracking-wider">Giải Ấn Tượng</span>
-                <p className="font-black text-sm text-[#1B2B22] mt-0.5">Top 2 & 3</p>
-                <p className="text-[11px] text-[#4B5E52] mt-1 font-medium">Kỷ niệm chương + Gói truyền thông du lịch</p>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-white/75 backdrop-blur-md border border-[#5BB5E8]/50 shadow-2xs">
-                <span className="font-bold text-xs text-[#5BB5E8] block uppercase tracking-wider">Giải Khuyến Khích</span>
-                <p className="font-black text-sm text-[#1B2B22] mt-0.5">Top 10 Tiêu Biểu</p>
-                <p className="text-[11px] text-[#4B5E52] mt-1 font-medium">Chứng nhận Điểm đến Nông thôn Xanh 2026</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 4 */}
-          <div className="space-y-2">
-            <h4 className="font-extrabold text-base text-[#1F6B45] flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              4. Tính minh bạch & Chống gian lận
-            </h4>
-            <p className="text-[#4B5E52] leading-relaxed">
-              Hệ thống áp dụng công nghệ chống gian lận đa tầng, tự động phát hiện và loại bỏ các lượt bình chọn ảo bằng bot hoặc công cụ tự động hóa. Quyết định cuối cùng thuộc về Hội đồng Giám khảo và Ban Tổ chức.
-            </p>
-          </div>
-
-          {/* Section 5: Support */}
-          <div className="p-4 rounded-2xl bg-white/60 backdrop-blur-md border border-white/80 shadow-2xs flex items-center gap-3">
-            <Mail className="h-5 w-5 text-[#1F6B45] shrink-0" />
-            <div className="text-xs text-[#4B5E52]">
-              Mọi thắc mắc và đóng góp ý kiến vui lòng liên hệ Ban Thư ký Cuộc thi qua email:{" "}
-              <a href="mailto:bantochuc@dulichnongthon.vn" className="font-bold text-[#1F6B45] hover:underline">
-                bantochuc@dulichnongthon.vn
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 bg-white/50 backdrop-blur-md border-t border-black/5 text-center">
-          <button
-            onClick={() => setRulesModalOpen(false)}
-            className="px-7 py-2.5 rounded-full bg-[#1F6B45] hover:bg-[#164e32] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
-          >
-            Đã hiểu thể lệ
-          </button>
-        </div>
+  return <div className="rules-overlay" onClick={event => { if (event.target === event.currentTarget) close(); }} onKeyDown={event => {
+    if (event.key === "Escape") close();
+    if (event.key === "Tab") {
+      const controls = panel.current?.querySelectorAll<HTMLElement>('button, a[href]');
+      const first = controls?.[0]; const last = controls?.[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+  }}>
+    <div ref={panel} className="rules-panel" role="dialog" aria-modal="true" aria-labelledby="rules-title" aria-describedby="rules-description">
+      <header className="rules-header">
+        <span className="rules-header-icon"><BookOpen size={24} strokeWidth={1.6} /></span>
+        <div><p>DU LỊCH NÔNG THÔN 2026</p><h2 id="rules-title">Thể lệ bình chọn</h2><span id="rules-description">Những điều cần biết trước khi gửi lá phiếu.</span></div>
+        <button ref={closeButton} className="rules-close" onClick={close} aria-label="Đóng thể lệ"><X size={21} /></button>
+      </header>
+      <div className="rules-content">
+        <div className="rules-summary"><div><strong>03</strong><span>Lượt / tài khoản</span></div><div><strong>01</strong><span>Lần / điểm đến</span></div><div><strong>35</strong><span>Điểm đến đề cử</span></div></div>
+        <section className="rules-block"><h3><CalendarDays size={19} /><span>Thời gian bình chọn</span><small>01</small></h3><div className="rules-dates"><div><span>Bắt đầu</span><time dateTime="2026-10-15T00:00:00+07:00">15.10.2026 <small>· 00:00</small></time></div><div><span>Kết thúc</span><time dateTime="2026-11-20T23:59:00+07:00">20.11.2026 <small>· 23:59</small></time></div></div><p>Kết quả được công bố tại Lễ trao giải Du lịch Nông thôn Việt Nam.</p></section>
+        <section className="rules-block"><h3><ShieldCheck size={19} /><span>Bình chọn như thế nào?</span><small>02</small></h3><ul className="rules-checklist">
+          <li><Check size={16} /><span>Đăng nhập bằng số điện thoại chính chủ tại Việt Nam và xác thực mã OTP.</span></li>
+          <li><Check size={16} /><span>Mỗi số điện thoại có <strong>tối đa 3 lượt bình chọn</strong> trong toàn bộ cuộc thi.</span></li>
+          <li><Check size={16} /><span>Mỗi điểm đến chỉ được bình chọn <strong>1 lần</strong>. Bạn có thể chọn tối đa 3 điểm đến khác nhau.</span></li>
+          <li><Check size={16} /><span>Sau khi xác nhận, lá phiếu <strong>không thể thay đổi hoặc thu hồi</strong>. Hãy kiểm tra điểm đến trước khi gửi.</span></li>
+        </ul></section>
+        <section className="rules-block"><h3><Trophy size={19} /><span>Giải thưởng & tôn vinh</span><small>03</small></h3><div className="rules-awards">
+          <article><span>QUÁN QUÂN</span><h4>Top 1</h4><p>Bằng khen Bộ NN&PTNT và cúp vàng danh dự.</p></article>
+          <article><span>ẤN TƯỢNG</span><h4>Top 2 & 3</h4><p>Kỷ niệm chương và gói truyền thông du lịch.</p></article>
+          <article><span>KHUYẾN KHÍCH</span><h4>Top 10</h4><p>Chứng nhận Điểm đến Nông thôn Xanh 2026.</p></article>
+        </div></section>
+        <section className="rules-fairness"><ShieldCheck size={20} /><div><h3>Bình chọn công bằng</h3><p>Không sử dụng bot hoặc công cụ tự động để bình chọn. Lượt bình chọn gian lận sẽ bị loại bỏ. Quyết định cuối cùng thuộc về Hội đồng Giám khảo và Ban Tổ chức.</p></div></section>
+        <div className="rules-support"><Mail size={18} /><div><span>Cần hỗ trợ? Liên hệ Ban Thư ký cuộc thi.</span><a href="mailto:bantochuc@dulichnongthon.vn">bantochuc@dulichnongthon.vn</a></div></div>
       </div>
+      <footer className="rules-footer"><button onClick={close}>Đã hiểu thể lệ <Check size={17} /></button></footer>
     </div>
-  );
+  </div>;
 }

@@ -16,7 +16,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#1B2B22] text-white pt-16 pb-12 border-t border-[#7CB342]/20">
+    <footer className="campaign-footer bg-bg-deep text-white pt-16 pb-12 border-t border-[#7CB342]/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10">

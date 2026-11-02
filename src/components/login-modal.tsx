@@ -1,253 +1,132 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { useVoting } from "@/context/voting-context";
-import { X, Smartphone, ArrowRight, ShieldCheck, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, UserRound, X } from "lucide-react";
+import { getRanking } from "@/data/mock";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { normalizePhone } from "@/lib/auth/authService";
+import { DAILY_VOTE_LIMIT, OTP_RESEND_SECONDS } from "@/lib/auth/config";
+import { useCountdown } from "@/hooks/useCountdown";
 
-export function LoginModal() {
-  const { loginModalOpen, setLoginModalOpen, loginUser, voteModalDestination } = useVoting();
-  const [step, setStep] = useState<1 | 2>(1);
+type Step = "phone" | "otp" | "account";
+function LoginPanel({ standalone }: { standalone: boolean }) {
+  const auth = useAuth();
+  const router = useRouter();
+  const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [normalizedPhone, setNormalizedPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [countdown, setCountdown] = useState(60);
-
-  const canResend = countdown === 0;
-
+  const [resendAt, setResendAt] = useState(0);
+  const { m, s } = useCountdown(resendAt);
+  const resendSeconds = Number(m) * 60 + Number(s);
+  const panel = useRef<HTMLDivElement>(null);
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+  const mounted = useRef(true);
+  const request = useRef(0);
+  const pendingDestination = getRanking().find(destination => destination.id === auth.pendingDestinationId);
+  let phoneError = "";
+  try { normalizePhone(`+84${phone}`); } catch (issue) { phoneError = issue instanceof Error ? issue.message : "Vui lòng kiểm tra số điện thoại."; }
+  const close = () => { ++request.current; auth.closeLoginModal(); if (standalone) router.push("/"); };
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (step === 2 && countdown > 0) {
-      timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    mounted.current = true;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    if (!standalone) document.body.style.overflow = "hidden";
+    panel.current?.querySelector<HTMLInputElement>("input")?.focus();
+    return () => {
+      mounted.current = false;
+      ++request.current;
+      if (!standalone) {
+        document.body.style.overflow = overflow;
+        if (previous?.isConnected && !(previous instanceof HTMLButtonElement && previous.disabled)) previous.focus();
+        else document.querySelector<HTMLButtonElement>(".account-trigger, .nav-login-button")?.focus();
+      }
+    };
+  }, [standalone]);
+  const run = async (operation: () => Promise<void>) => {
+    if (busy) return;
+    const token = ++request.current;
+    setBusy(true); setError("");
+    try { await operation(); }
+    catch (issue) { if (mounted.current && token === request.current) setError(issue instanceof Error ? issue.message : "Có lỗi xảy ra. Vui lòng thử lại."); }
+    finally { if (mounted.current && token === request.current) setBusy(false); }
+  };
+  const send = async (event: FormEvent) => {
+    event.preventDefault(); setPhoneTouched(true);
+    if (phoneError) { setError(phoneError); return; }
+    const normalized = normalizePhone(`+84${phone}`);
+    await run(async () => {
+      await auth.sendOtp(normalized);
+      if (!mounted.current) return;
+      setNormalizedPhone(normalized); setResendAt(Date.now() + OTP_RESEND_SECONDS * 1000); setOtp(Array(6).fill("")); setStep("otp");
+    });
+  };
+  const resend = () => run(async () => {
+    await auth.sendOtp(normalizedPhone);
+    if (!mounted.current) return;
+    setResendAt(Date.now() + OTP_RESEND_SECONDS * 1000); setOtp(Array(6).fill("")); inputs.current[0]?.focus();
+  });
+  const verify = async (event: FormEvent) => {
+    event.preventDefault();
+    if (otp.join("").length !== 6) { setError("Vui lòng nhập đủ 6 chữ số mã OTP."); return; }
+    await run(async () => { await auth.verifyOtp(normalizedPhone, otp.join("")); if (standalone) router.push("/"); });
+  };
+  const submitAccount = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!username.trim() || !password) { setError("Vui lòng nhập tài khoản và mật khẩu."); return; }
+    await run(async () => { await auth.loginWithAccount(username, password); if (standalone) router.push("/"); });
+  };
+  const enterDigits = (index: number, text: string) => {
+    if (!/^\d*$/.test(text)) return;
+    const digits = text.slice(0, 6 - index).split("");
+    setOtp(current => { const next = [...current]; if (!digits.length) next[index] = ""; else digits.forEach((digit, offset) => { next[index + offset] = digit; }); return next; });
+    setError(""); inputs.current[Math.min(index + digits.length, 5)]?.focus();
+  };
+  const changeStep = (next: Step) => { setError(""); setStep(next); };
+  return <div className={standalone ? "auth-page" : "auth-overlay"} onPointerDown={event => { if (!standalone && event.target === event.currentTarget) close(); }} onKeyDown={event => {
+    if (event.key === "Escape") { event.stopPropagation(); close(); }
+    if (event.key === "Tab" && !standalone) {
+      const controls = panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], summary');
+      const first = controls?.[0]; const last = controls?.[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
-    return () => clearTimeout(timer);
-  }, [step, countdown]);
-
-  if (!loginModalOpen) return null;
-
-  const handleClose = () => {
-    setLoginModalOpen(false);
-    setStep(1);
-    setPhone("");
-    setOtp(["", "", "", "", "", ""]);
-    setError("");
-    setCountdown(60);
-  };
-
-  const handleSendOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanPhone = phone.replace(/\s+/g, "");
-    if (!/^0[3|5|7|8|9][0-9]{8}$/.test(cleanPhone)) {
-      setError("Vui lòng nhập số điện thoại Việt Nam hợp lệ (10 chữ số).");
-      return;
-    }
-    setError("");
-    setStep(2);
-    setCountdown(60);
-  };
-
-  const handleOtpChange = (index: number, val: string) => {
-    if (!/^\d*$/.test(val)) return;
-    const newOtp = [...otp];
-    newOtp[index] = val.slice(-1);
-    setOtp(newOtp);
-
-    // Auto focus next box
-    if (val && index < 5) {
-      const nextInput = document.getElementById(`otp-${index + 1}`);
-      nextInput?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      const prevInput = document.getElementById(`otp-${index - 1}`);
-      prevInput?.focus();
-    }
-  };
-
-  const handleVerifyOtp = (e: React.FormEvent) => {
-    e.preventDefault();
-    const otpValue = otp.join("");
-    if (otpValue.length < 6) {
-      setError("Vui lòng nhập đủ 6 chữ số mã OTP.");
-      return;
-    }
-    setError("");
-    loginUser(phone);
-    handleClose();
-  };
-
-  const handleQuickDemo = () => {
-    setOtp(["1", "2", "3", "4", "5", "6"]);
-    setError("");
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
-      {/* Modal Card chuẩn phong cách Glassmorphism: Kính trong suốt, mờ mịn cao cấp, viền phản quang */}
-      <div className="relative w-full max-w-md rounded-3xl bg-white/75 backdrop-blur-2xl border border-white/90 p-7 sm:p-9 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] space-y-6">
-        {/* Nút đóng dạng Glassmorphic pill */}
-        <button
-          onClick={handleClose}
-          className="absolute right-5 top-5 p-2 rounded-full bg-white/60 hover:bg-white text-[#1B2B22] border border-white/80 shadow-xs backdrop-blur-md transition-all cursor-pointer"
-          aria-label="Đóng"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Tiêu đề & Logo */}
-        <div className="text-center space-y-2">
-          <div className="relative mx-auto h-16 w-16 rounded-full overflow-hidden border-2 border-white shadow-md ring-1 ring-[#1F6B45]/20 mb-3">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <h3 className="text-2xl font-black text-[#1B2B22] tracking-tight">
-            {step === 1 ? "Đăng nhập để bình chọn" : "Xác thực mã OTP"}
-          </h3>
-          <p className="text-xs sm:text-sm text-[#4B5E52] font-medium max-w-xs mx-auto">
-            {step === 1
-              ? "Mỗi số điện thoại được bình chọn tối đa 3 điểm đến yêu thích."
-              : `Mã OTP gồm 6 chữ số đã được gửi đến số điện thoại ${phone}`}
-          </p>
-        </div>
-
-        {/* Hộp nhắc điểm đến đang chọn vote (Glassmorphic) */}
-        {voteModalDestination && (
-          <div className="p-3 rounded-2xl bg-white/60 backdrop-blur-md border border-white/80 shadow-xs flex items-center gap-3">
-            <div className="relative h-12 w-12 rounded-xl overflow-hidden shrink-0 border border-white shadow-2xs">
-              <Image
-                src={voteModalDestination.imageUrl}
-                alt={voteModalDestination.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="overflow-hidden">
-              <span className="text-[10px] font-bold text-[#1F6B45] uppercase tracking-wider">
-                Bình chọn cho:
-              </span>
-              <p className="text-xs font-black text-[#1B2B22] truncate">
-                {voteModalDestination.name} ({voteModalDestination.province})
-              </p>
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <div className="p-3 rounded-xl bg-rose-50/90 border border-rose-200 text-xs text-rose-700 font-bold">
-            {error}
-          </div>
-        )}
-
-        {/* Bước 1: Nhập số điện thoại */}
-        {step === 1 && (
-          <form onSubmit={handleSendOtp} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-[#1B2B22] mb-1.5">
-                Số điện thoại của bạn
-              </label>
-              <div className="relative">
-                <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1F6B45]" />
-                <input
-                  type="tel"
-                  placeholder="Ví dụ: 0912 345 678"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/90 text-sm font-bold text-[#1B2B22] placeholder:text-[#4B5E52]/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1F6B45] shadow-xs"
-                  autoFocus
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3.5 rounded-2xl bg-[#1F6B45] hover:bg-[#164e32] text-white font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/30"
-            >
-              <span>Tiếp tục nhận mã OTP</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-[#4B5E52] font-medium pt-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#1F6B45]" />
-              <span>Bảo mật thông tin người tham gia theo quy định</span>
-            </div>
-          </form>
-        )}
-
-        {/* Bước 2: Nhập OTP */}
-        {step === 2 && (
-          <form onSubmit={handleVerifyOtp} className="space-y-5">
-            <div>
-              <label className="block text-xs font-bold text-[#1B2B22] mb-2 text-center">
-                Nhập 6 chữ số mã xác thực
-              </label>
-              <div className="flex items-center justify-center gap-2">
-                {otp.map((digit, i) => (
-                  <input
-                    key={i}
-                    id={`otp-${i}`}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(i, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(i, e)}
-                    className="h-12 w-11 sm:w-12 text-center text-lg font-black rounded-xl bg-white/85 backdrop-blur-md border border-white/90 text-[#1B2B22] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1F6B45] shadow-xs"
-                    autoFocus={i === 0}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Demo Button */}
-            <div className="flex items-center justify-between text-xs text-[#4B5E52] pt-1 font-semibold">
-              <button
-                type="button"
-                onClick={handleQuickDemo}
-                className="text-xs text-[#1F6B45] font-bold hover:underline"
-              >
-                Nhập nhanh OTP mẫu (123456)
-              </button>
-
-              {canResend ? (
-                <button
-                  type="button"
-                  onClick={() => setCountdown(60)}
-                  className="inline-flex items-center gap-1 text-xs text-[#1F6B45] font-bold hover:underline"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  <span>Gửi lại mã</span>
-                </button>
-              ) : (
-                <span className="text-[11px] text-[#4B5E52]">
-                  Gửi lại sau {countdown}s
-                </span>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-1/3 py-3 rounded-2xl bg-white/75 hover:bg-white text-[#1B2B22] border border-white/80 text-xs font-bold shadow-xs backdrop-blur-md transition-colors"
-              >
-                Đổi số ĐT
-              </button>
-              <button
-                type="submit"
-                className="w-2/3 py-3 rounded-2xl bg-[#F5A623] hover:bg-[#e09318] text-[#1B2B22] font-black text-sm shadow-md hover:shadow-lg transition-all"
-              >
-                Xác nhận & Đăng nhập
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
+  }}><div ref={panel} className="auth-panel" role={standalone ? undefined : "dialog"} aria-modal={standalone ? undefined : true} aria-labelledby="auth-title" aria-describedby="auth-description">
+    <div className="auth-topline"><Link href="/" aria-label="Du lịch Nông thôn - Trang chủ"><Image src="/logo.png" alt="Du lịch Nông thôn" width={34} height={34} className="rounded-full" /></Link><button className="auth-close" onClick={close} aria-label="Đóng đăng nhập"><X size={19} /></button></div>
+    <div className="auth-intro"><h2 id="auth-title">{step === "otp" ? "Nhập mã OTP" : "Đăng nhập"}</h2><p id="auth-description">{step === "otp" ? <>Mã xác thực 6 số cho <strong>{normalizedPhone}</strong>.</> : step === "phone" ? "Nhập số điện thoại để nhận mã OTP." : "Nhập tài khoản và mật khẩu của bạn."}</p></div>
+    {pendingDestination && <div className="auth-destination"><span>Đăng nhập xong sẽ bình chọn cho</span><strong>{pendingDestination.name}</strong></div>}
+    <div aria-live="assertive" aria-atomic="true">{(error || (step === "phone" && phoneTouched && phoneError)) && <p className="auth-error">{error || phoneError}</p>}</div>
+    {step === "phone" && <form className="auth-form" onSubmit={send} noValidate>
+      <div><label htmlFor="auth-phone">Số điện thoại</label><div className="auth-input auth-phone-input"><span className="phone-prefix" aria-hidden="true">🇻🇳 <b>+84</b></span><input id="auth-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="912 345 678" value={phone} disabled={busy || auth.isLoading} aria-invalid={phoneTouched && !!phoneError} aria-describedby="phone-hint" onChange={event => { const value = event.target.value.replace(/\s/g, ""); setPhone(value.startsWith("+84") ? value.slice(3) : value.startsWith("0") ? value.slice(1) : value); setPhoneTouched(true); setError(""); }} /></div><small id="phone-hint" className="auth-phone-hint">Nhập 9 chữ số sau mã quốc gia +84.</small></div>
+      <button className="vote-button auth-submit" type="submit" disabled={busy || auth.isLoading}>{busy ? <><LoaderCircle className="animate-spin" size={17} />Đang gửi mã…</> : <>Gửi mã OTP <ArrowRight size={17} /></>}</button>
+      <button className="auth-back" type="button" disabled={busy} onClick={() => changeStep("account")}>Đăng nhập bằng tài khoản, mật khẩu</button>
+    </form>}
+    {step === "otp" && <form className="auth-form" onSubmit={verify} noValidate>
+      <fieldset className="otp-fieldset" disabled={busy}><legend>Mã xác thực 6 chữ số</legend><div className="otp-boxes">{otp.map((digit, index) => <input key={index} ref={element => { inputs.current[index] = element; }} aria-label={`Chữ số OTP ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={6} value={digit} className={digit ? "is-filled" : ""} onChange={event => enterDigits(index, event.target.value)} onFocus={event => event.target.select()} onPaste={event => { event.preventDefault(); const value = event.clipboardData.getData("text").trim(); if (/^\d{1,6}$/.test(value)) enterDigits(index, value); }} onKeyDown={event => { if (event.key === "Backspace" && !digit && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowLeft" && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 5) inputs.current[index + 1]?.focus(); }} autoFocus={index === 0} />)}</div></fieldset>
+      {process.env.NODE_ENV !== "production" && <p className="auth-test-hint">Mã thử nghiệm: 123456</p>}
+      <div className="otp-resend"><span>Chưa nhận được mã?</span><button type="button" disabled={busy || resendSeconds > 0} onClick={() => void resend()}>{busy ? "Đang xử lý…" : resendSeconds > 0 ? `Gửi lại sau ${resendSeconds}s` : "Gửi lại mã"}</button></div>
+      <button className="vote-button auth-submit" type="submit" disabled={busy}>{busy ? <><LoaderCircle className="animate-spin" size={17} />Đang xác nhận…</> : "Xác nhận"}</button>
+      <button className="auth-back" type="button" disabled={busy} onClick={() => changeStep("phone")}><ArrowLeft size={15} />Đổi số điện thoại</button>
+    </form>}
+    {step === "account" && <form className="auth-form" onSubmit={submitAccount} noValidate>
+      <div><label htmlFor="auth-username">Tài khoản</label><div className="auth-input"><UserRound size={17} /><input id="auth-username" autoComplete="username" placeholder="Tên tài khoản" value={username} onChange={event => setUsername(event.target.value)} disabled={busy} autoFocus /></div></div>
+      <div><label htmlFor="auth-password">Mật khẩu</label><div className="auth-input"><LockKeyhole size={17} /><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} disabled={busy} /><button type="button" aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"} onClick={() => setShowPassword(value => !value)}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
+      <button className="vote-button auth-submit" type="submit" disabled={busy}>{busy ? "Đang đăng nhập…" : "Đăng nhập"}</button>
+      <button className="auth-back" type="button" disabled={busy} onClick={() => changeStep("phone")}>Đăng nhập bằng số điện thoại</button>
+      {process.env.NODE_ENV !== "production" && <details className="auth-demo"><summary>Tài khoản trải nghiệm</summary><p>nongthon2026 / Nongthon2026!</p></details>}
+    </form>}
+    <p className="auth-demo-note">Mỗi tài khoản có tối đa {DAILY_VOTE_LIMIT} lượt bình chọn mỗi ngày, không cộng dồn.</p>
+  </div></div>;
+}
+export function LoginModal({ standalone = false }: { standalone?: boolean }) {
+  const { loginModalOpen } = useAuth();
+  return standalone || loginModalOpen ? <LoginPanel standalone={standalone} /> : null;
 }

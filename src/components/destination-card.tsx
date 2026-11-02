@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { DestinationImage } from "./destination-image";
 import { Destination } from "@/data/destinations";
 import { useVoting } from "@/context/voting-context";
 import { MapPin, CheckCircle2, Heart } from "lucide-react";
@@ -16,14 +16,15 @@ export function DestinationCard({ destination, rank }: DestinationCardProps) {
   const isVoted = user?.votedIds.includes(destination.id);
 
   return (
-    <div className="group rounded-2xl overflow-hidden bg-white border border-[#1F6B45]/15 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1">
+    <div className="destination-card group rounded-2xl overflow-hidden bg-[#f0f4e9] border border-[#1F6B45]/15 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1">
       {/* Top Image with Gradient Overlay */}
       <div className="relative aspect-4/3 w-full overflow-hidden bg-[#EBF5EE]">
-        <Image
+        <DestinationImage
+          region={destination.region}
           src={destination.imageUrl}
           alt={destination.name}
           fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1279px) 50vw, 25vw"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {/* Dark Gradient Overlay for Readability */}
@@ -40,12 +41,12 @@ export function DestinationCard({ destination, rank }: DestinationCardProps) {
         </div>
 
         {/* Name & Province over Photo */}
-        <div className="absolute bottom-2.5 inset-x-3 text-white">
+        <div className="absolute bottom-4 inset-x-5 text-white">
           <div className="flex items-center gap-1 text-[11px] text-[#5BB5E8] font-medium mb-0.5">
             <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate">{destination.province}</span>
           </div>
-          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-1 text-white group-hover:text-[#F5A623] transition-colors">
+          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-white group-hover:text-[#b8e486] transition-colors">
             {destination.name}
           </h3>
         </div>
@@ -53,7 +54,7 @@ export function DestinationCard({ destination, rank }: DestinationCardProps) {
 
       {/* Card Content & Action */}
       <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
-        <p className="text-xs text-[#4B5E52] leading-relaxed line-clamp-2">
+        <p className="text-sm text-[#4B5E52] leading-relaxed line-clamp-2">
           {destination.brief}
         </p>
 
@@ -75,7 +76,7 @@ export function DestinationCard({ destination, rank }: DestinationCardProps) {
             className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1 cursor-pointer shrink-0 ${
               isVoted
                 ? "bg-[#7CB342]/15 text-[#1F6B45] border border-[#7CB342]/30 cursor-not-allowed"
-                : "bg-[#F5A623] hover:bg-[#e09318] text-[#1B2B22] shadow-xs hover:shadow"
+                : "bg-[#b8e486] hover:bg-[#a4d771] text-[#1B2B22] shadow-xs hover:shadow"
             }`}
           >
             {isVoted ? (
