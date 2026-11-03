@@ -40,23 +40,25 @@ Hệ thống được phát triển với triết lý thiết kế hiện đại
 - **Glassmorphism Floating Navbar**: Thanh điều hướng dạng viên thuốc bo tròn với hiệu ứng kính mờ `backdrop-blur-2xl`, độ tương phản cao, tối ưu hiển thị trên mọi nền ảnh.
 - **Hero Video**: Video phong cảnh nông thôn Việt Nam với nút phát/tạm dừng, ảnh dự phòng và hỗ trợ giảm chuyển động. Nguồn video được cấu hình trong `src/lib/media.ts`.
 - **Live Countdown Timer**: Đồng hồ đếm ngược thời gian kết thúc bình chọn (Ngày : Giờ : Phút : Giây) hiển thị song hành cùng nút hành động chính.
+- **Motion & Lenis Smooth Scroll**: Tích hợp công nghệ cuộn trang quán tính mượt mà [motion.dev/examples/js-lenis-smooth-scroll](https://motion.dev/examples/js-lenis-smooth-scroll), đồng bộ trực tiếp với vòng lặp xử lý frame (`motion/frame`), khử hoàn toàn hiện tượng giật lag khi cuộn chuột và tự động tối ưu hóa anchor scrolling.
 - **Cuộn trang tương tác mượt mà**:
   - Thanh tiến trình cuộn trang siêu mượt (Scroll Progress Bar) ở mép trên màn hình.
   - Nút trượt nhanh về đầu trang (Back to Top) mờ kính.
   - Hiệu ứng xuất hiện mềm mại (Reveal on Scroll) theo từng phân đoạn nội dung.
 
 ### 2. Danh mục 35 Điểm đến & Phân trang Thông minh
-- **Bộ lọc đa chiều**: Lọc nhanh theo 3 vùng miền (**Miền Bắc**, **Miền Trung**, **Miền Nam**) kết hợp thanh tìm kiếm thời gian thực theo tên địa danh, tỉnh thành.
-- **Sắp xếp linh hoạt**: Tùy chọn sắp xếp theo mức độ bình chọn cao nhất hoặc theo mã định danh (NT-01 đến NT-35).
-- **Phân trang tối ưu (Pagination)**: Chia đều 8 thẻ/trang kèm điều hướng trang trực quan, tự động cuộn lên đầu danh mục khi chuyển trang.
+- **Tìm kiếm thông minh & Sắp xếp linh hoạt**: Tìm kiếm thời gian thực theo tên điểm đến, mã số hồ sơ (DLNT01, DLNT02...) và tỉnh thành; hỗ trợ sắp xếp theo lượt bình chọn cao nhất, tên A-Z hoặc theo mã số.
+- **Chi tiết hồ sơ bài thi (Detail Modal & Standalone Route `/bai-thi/[id]`)**: Xem chi tiết toàn diện từng bài thi dự thi với ảnh bìa khổ rộng, 4 trụ cột tiêu chí đánh giá của Bộ Nông nghiệp & Môi trường (Sản phẩm & OCOP, Cộng đồng & Bản sắc, Môi trường sinh thái, Chuyển đổi số), bảng thống kê quy mô làng quê, duyệt nhanh bài trước/sau và sao chép liên kết chia sẻ trực tiếp.
+- **Dàn 4x3 & Phân trang 3 lớp tối ưu**: Dàn đều 12 thẻ/trang (4 cột x 3 hàng chuẩn desktop), tương ứng 3 lớp trang (Trang 1: 12, Trang 2: 12, Trang 3: 11) cho toàn bộ 35 điểm đến; thanh điều khiển squircle bo tròn mượt mà, tự động cuộn lên đầu danh mục khi chuyển trang.
 
-### 3. Quy trình Bình chọn Step-by-Step sinh động
-- **AOS**: Hiệu ứng cuộn xuất hiện một lần, tôn trọng tùy chọn `prefers-reduced-motion`.
-- Khu vực **Cách thức bình chọn** kích hoạt hiệu ứng tự động theo từng bước khi cuộn tới (`IntersectionObserver`):
-  - **Bước 01**: Đăng nhập bằng số điện thoại (OTP 6 chữ số).
-  - **Bước 02**: Chọn tối đa 3 điểm đến đề cử yêu thích.
-  - **Bước 03**: Xác nhận bình chọn và ghi nhận trực tiếp vào bảng tổng sắp.
-- Đường line tiến trình chuyển màu động kết nối xuyên suốt 3 bước.
+### 3. Quy trình 5 Bước Bình Chọn & Cơ cấu Đa kênh
+- **Quy trình 5 Bước chuẩn BTC**:
+  - **Bước 01**: Xem thông tin & video giới thiệu 35 điểm đến trên Fanpage/TikTok.
+  - **Bước 02**: Truy cập Landing Page chính thức.
+  - **Bước 03**: Xác thực số điện thoại qua mã OTP 6 số an toàn.
+  - **Bước 04**: Chọn mã dự thi và nhấn "BÌNH CHỌN" (mỗi điểm đến chỉ bình chọn 01 lần).
+  - **Bước 05**: Tiếp tục bình chọn các điểm đến khác (tối đa 3 điểm đến/tài khoản).
+- **Cơ cấu tính điểm minh bạch**: 80% từ cổng Landing Page + 10% Facebook + 10% TikTok (Lượt Share tính hệ số 2).
 
 ### 4. Bảng Xếp Hạng & Quản Lý Bình Chọn (State Management)
 - **Top 3 Leaderboard**: Tôn vinh 3 vị trí dẫn đầu toàn quốc với hiệu ứng huy chương vàng, bạc, đồng; Top 1 ở giữa và cao hơn trên desktop; vàng, bạc và đồng phân biệt từng thứ hạng. Trên điện thoại hiển thị theo thứ tự 1–2–3.
@@ -73,14 +75,14 @@ Hệ thống được phát triển với triết lý thiết kế hiện đại
 
 Bảng màu được lấy cảm hứng từ thiên nhiên nông thôn, đồng ruộng và sông nước Việt Nam:
 
-| Vai trò | Tên màu | Mã màu (HEX) | Minh họa | Ứng dụng thực tế |
+| Vai trò | Tên màu | Mã màu (HEX) | Minh họa | Ứng dụng thực tế theo Logo |
 | :--- | :--- | :---: | :---: | :--- |
-| **Chủ đạo** | Xanh lá đậm | `#1F6B45` | `■` | Logo, tiêu đề chính, nút nhấn phụ, huy hiệu nhận diện |
-| **Phụ** | Xanh lá tươi | `#7CB342` | `■` | Tag danh mục, bước 2 quy trình, điểm nhấn tươi sáng |
-| **Nhấn** | Cam vàng | `#F5A623` | `■` | Nút **Bình chọn ngay**, Rank 1 Leaderboard, bước 3 hoàn tất |
-| **Điểm nhấn nhỏ** | Xanh dương | `#5BB5E8` | `■` | Chỉ số minh bạch, màu sắc biểu trưng cho sông nước |
-| **Nền** | Kem nhạt | `#FBF8F0` | `■` | Màu nền toàn bộ website, tạo cảm giác dịu nhẹ, sang trọng |
-| **Chữ** | Xanh đen | `#1B2B22` | `■` | Tiêu đề và nội dung văn bản đạt độ tương phản chuẩn WCAG |
+| **Chủ đạo** | Xanh ngọc đậm (Núi đồi) | `#026E4E` | `■` | Logo, tiêu đề chính, thương hiệu, nút đăng nhập |
+| **Điểm nhấn chính** | Cam vàng lúa chín (Ánh dương) | `#FF9F00` / `#FFB020` | `■` | Nút **Bình chọn ngay**, Rank 1 Vương miện, số liệu nổi bật |
+| **Phụ tươi sáng** | Xanh mạ non (Ruộng bậc thang) | `#16A34A` / `#22C55E` | `■` | Thẻ tag vùng miền, icon thiên nhiên sinh thái |
+| **Điểm nhấn mát** | Xanh nước biếc (Sông nước & trời) | `#00C2FF` | `■` | Vị trí địa lý, điểm nhấn sông nước, huy hiệu Rank 2 |
+| **Nền sáng** | Trắng tinh khôi & Kem mạ non | `#FFFFFF` / `#F4FAF6` | `■` | Nền toàn bộ website và các card trong trẻo, tươi sáng |
+| **Chữ** | Xanh ngọc sẫm | `#0E382B` | `■` | Tiêu đề và nội dung văn bản đạt độ sắc nét và tương phản cao |
 
 - **Phông chữ**: `Manrope` cho nội dung và `Lora` cho tiêu đề (Google Fonts) – hiển thị dấu tiếng Việt sắc nét, hiện đại, kích thước tối thiểu từ 16px.
 
@@ -90,6 +92,7 @@ Bảng màu được lấy cảm hứng từ thiên nhiên nông thôn, đồng 
 
 - **Core Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack, Server-Ready Architecture)
 - **UI Library**: [React 19](https://react.dev/)
+- **Animations & Smooth Scroll**: [Motion (Framer Motion v14)](https://motion.dev/) & [Lenis](https://lenis.darkroom.engineering/) (Shared Frame Loop Architecture)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Ngôn ngữ**: TypeScript 5 (Strict Mode)
@@ -129,39 +132,43 @@ npm run start
 
 ---
 
-## 📋 Thể Lệ Bình Chọn Tóm Tắt
+## 📋 Thể Lệ & Quy Chế Bình Chọn Chính Thức
 
-1. **Đối tượng tham gia**: Mọi công dân Việt Nam và bạn bè quốc tế quan tâm đến du lịch nông thôn.
-2. **Quy định lượt vote**:
-   - Mỗi số điện thoại xác thực qua OTP được cấp tối đa **03 lượt bình chọn**.
-   - Mỗi điểm đến chỉ được bình chọn **01 lần duy nhất** (không bình chọn trùng lặp).
-3. **Tính minh bạch**: Kết quả được đối soát và cập nhật công khai tức thì trên Bảng xếp hạng trực tuyến.
+Theo văn bản chỉ đạo của **Ban Tổ chức Hội thi – Bộ Nông nghiệp và Môi trường**:
+
+### 1. Thời gian bình chọn
+- Bắt đầu: **00h00 ngày 05/11/2026**
+- Kết thúc: **23h59 ngày 20/11/2026**
+- Cổng bình chọn trực tuyến duy nhất: **Landing Page chính thức của Hội thi**
+
+### 2. Quy định số lượt bình chọn
+- Mỗi số điện thoại xác thực mã OTP được bình chọn tối đa **03 điểm đến khác nhau** trong toàn bộ thời gian diễn ra Hội thi.
+- Mỗi điểm đến chỉ được bình chọn **01 lần duy nhất** (không được bình chọn trùng lặp một điểm đến).
+- Lượt bình chọn đã gửi thành công **không được hoàn tác** hoặc chuyển đổi.
+
+### 3. Cơ cấu tỷ trọng tính kết quả chung (80% – 10% – 10%)
+Kết quả bình chọn chung cuộc được tổng hợp từ 3 kênh chính thức:
+
+| Kênh bình chọn | Tỷ trọng | Tiêu chí tính điểm |
+| :--- | :---: | :--- |
+| **Landing Page chính thức** | **80%** | Tổng số lượt bình chọn hợp lệ xác thực qua mã OTP trên website |
+| **Fanpage Facebook chính thức** | **10%** | `Số lượt Thích (Like) + (Số lượt Chia sẻ (Share) × 2)` trên bài đăng dự thi |
+| **Kênh TikTok chính thức** | **10%** | `Số lượt Thả tim (Like) + (Số lượt Chia sẻ (Share) × 2)` trên video dự thi |
+
+> **Công thức tính điểm**:
+> $$\text{KẾT QUẢ CHUNG} = (\text{Tỷ lệ Landing Page} \times 80\%) + (\text{Tỷ lệ Fanpage} \times 10\%) + (\text{Tỷ lệ TikTok} \times 10\%)$$
+> Trong đó:
+> $$\text{Tỷ lệ kênh} = \left(\frac{\text{Kết quả của điểm đến}}{\text{Kết quả cao nhất trên chính kênh đó}}\right) \times 100\%$$
+
+### 4. Quy trình 5 bước bình chọn trực tuyến
+1. **Bước 1**: Theo dõi hình ảnh, video giới thiệu 35 điểm đến trên Fanpage, TikTok và truyền thông chính thức.
+2. **Bước 2**: Truy cập Landing Page qua đường link hoặc quét mã QR.
+3. **Bước 3**: Nhập số điện thoại để nhận mã xác thực OTP miễn phí qua tin nhắn SMS.
+4. **Bước 4**: Chọn mã dự thi của điểm đến (DLNT01, DLNT02...) và nhấn **"BÌNH CHỌN"**.
+5. **Bước 5**: Tiếp tục bình chọn cho các điểm đến khác nếu tài khoản còn lượt vote.
 
 ---
 
 <p align="center">
-  <sub>© 2026 Cuộc thi Du lịch Nông thôn Việt Nam. Phát triển vì sự phát triển bền vững của cộng đồng nông thôn.</sub>
+  <sub>© 2026 Hội thi “Điểm đến du lịch nông thôn Việt Nam tốt nhất” năm 2026 • Bộ Nông nghiệp và Môi trường.</sub>
 </p>
-
-## Giao diện cập nhật
-
-- Nền xanh dịu `#EAF1E5`, xanh lá sáng `#B8E486` cho nút bình chọn; header kính nền xanh trong suốt.
-- Thống kê lấy số điểm đến và tổng lượt bình chọn trực tiếp từ Voting Context.
-- Video minh họa: [Hữu Thịnh 79 / Pexels](https://www.pexels.com/video/stunning-aerial-view-of-central-vietnam-rice-fields-31460029/), phong cảnh đồng lúa miền Trung. Có thể thay bằng phim chính thức tại `src/lib/media.ts`.
-- `postcss.config.mjs` dùng plugin `@tailwindcss/postcss` để biên dịch Tailwind trong cả development và production Webpack.
-
-## Nền và chuyển động
-
-`PageBackground` tạo mesh mint/sage/sky, blob chuyển động bằng transform, SVG đường ruộng và grain nhẹ; không thêm thư viện. `SectionDivider` chia các section bằng sóng. Hero giữ video đang có, thêm dot grid và gradient chuyển về màu nền mới. Card top 1 dùng IntersectionObserver để chạy hiệu ứng nổi lên một lần khi vào màn hình; top 2 và 3 không có hiệu ứng scroll. `prefers-reduced-motion` tắt blob và hiệu ứng card.
-
-Các file cho đợt nền/chuyển động: `src/components/page-background.tsx`, `src/components/section-divider.tsx` (mới); `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`, `src/components/top3.tsx`, `src/components/footer.tsx` (sửa). Thiết kế thể lệ và menu ở `src/components/rules-modal.tsx`, `src/components/navbar.tsx`.
-
-Bộ dữ liệu Phụ lục 02 đã hoàn tất **bước 1: types + data** trong `src/data/mock/`: `types.ts`, `destinations.ts`, `votes.ts`, `regions.ts`, `contest.ts`, `index.ts`, `README.md`, `image-todo.md`. Bản motion premium sau đó đã nối getRanking() và lớp tương thích của luồng bình chọn vào nguồn mock. Xem ghi chú chất lượng và nguồn trong `src/data/mock/README.md`.
-
-## Top 3 — motion premium
-
-- TopRankCard dùng chung RANK_THEME cho vàng kim loại, bạc và đồng. Viền gradient, lớp glow opacity, shine và SVG sparkle/confetti cấu hình cố định; không thêm thư viện.
-- useInView quan sát phần giới thiệu section với threshold 0.35 (vẫn kích hoạt được trên màn hình thấp dù cả section cao hơn viewport), ngừng quan sát sau lần đầu. Desktop: top 1 xuất hiện ở 200ms/900ms, shine và burst ở 900ms; top 2 ở 1300ms/700ms, top 3 ở 1500ms/700ms. Count-up top 1 bắt đầu 1000ms, top 2–3 ở 2200ms, chạy easeOutExpo trong 1600ms. Mobile: reveal dọc ở 200/400/600ms.
-- Trước trigger, giữ chiều cao card nhưng ẩn nội dung và vô hiệu hóa tương tác. Kết thúc entry thì bỏ will-change và cố định trạng thái cuối để resize không chạy lại entry. Hover tilt tối đa ±4° chỉ trên pointer fine có hover. Giảm chuyển động: hiển thị ngay số cuối, không shine/sparkle/count-up.
-- Dữ liệu top 3 từ getRanking() của src/data/mock; phiếu runtime được hợp nhất từ Voting Context. Lớp tương thích src/data/destinations.ts giúp danh sách, thống kê và modal cùng dùng 35 hồ sơ mới. Ảnh chưa xác minh dùng gradient fallback, không dùng ảnh sai địa danh. Đọc storage sau hydration để tránh SSR/CSR khác nhau.
-- File mới: src/hooks/useInView.ts, src/hooks/useCountUp.ts, src/hooks/useReducedMotion.ts, src/components/top-rank-card.tsx, src/components/destination-image.tsx. File sửa: src/hooks/useMediaQuery.ts, src/components/top3.tsx, src/app/globals.css, src/data/mock/index.ts, src/data/destinations.ts, src/context/voting-context.tsx, src/components/destination-card.tsx, src/components/leaderboard-modal.tsx, src/components/vote-modal.tsx, src/components/stats-grid.tsx; cùng README dự án và README mock.

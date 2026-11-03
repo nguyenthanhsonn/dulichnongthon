@@ -12,6 +12,8 @@ interface VotingContextType {
   setLoginModalOpen(open: boolean): void;
   voteModalDestination: Destination | null;
   setVoteModalDestination(destination: Destination | null): void;
+  detailModalDestination: Destination | null;
+  setDetailModalDestination(destination: Destination | null): void;
   leaderboardModalOpen: boolean;
   setLeaderboardModalOpen(open: boolean): void;
   rulesModalOpen: boolean;
@@ -29,11 +31,15 @@ function VotingBridge({ children }: { children: ReactNode }) {
   const auth = useAuth();
   const destinations = getRanking(auth.totals).map(toVotingDestination);
   const [voteModalDestination, setVoteModalDestination] = useState<Destination | null>(null);
+  const [detailModalDestination, setDetailModalDestination] = useState<Destination | null>(null);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [rulesModalOpen, setRulesModalOpen] = useState(false);
   const user = auth.user ? { phone: auth.user.phone, votesRemaining: auth.votesLeftToday, votedIds: auth.votedIdsToday } : null;
   const handleVoteClick = (destination: Destination) => {
-    if (!auth.user || auth.hasVoted(destination.id) || auth.votesLeftToday === 0) { void auth.vote(destination.id); return; }
+    if (!auth.user || auth.hasVoted(destination.id) || auth.votesLeftToday === 0) {
+      void auth.vote(destination.id);
+      return;
+    }
     setVoteModalDestination(destination);
     setLeaderboardModalOpen(false);
   };
@@ -46,6 +52,7 @@ function VotingBridge({ children }: { children: ReactNode }) {
     user, destinations, loginModalOpen: auth.loginModalOpen,
     setLoginModalOpen: open => { if (open) auth.openLoginModal(); else auth.closeLoginModal(); },
     voteModalDestination, setVoteModalDestination,
+    detailModalDestination, setDetailModalDestination,
     leaderboardModalOpen, setLeaderboardModalOpen, rulesModalOpen, setRulesModalOpen,
     toastMessage: auth.toastMessage, showToast: auth.showToast,
     loginUser: (phone: string) => { void auth.verifyOtp(phone, "123456").catch(() => {}); },

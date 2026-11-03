@@ -13,27 +13,27 @@ import { DestinationImage } from "./destination-image";
 export type TopRank = 1 | 2 | 3;
 export const RANK_THEME = {
   1: {
-    label: "DẪN ĐẦU BÌNH CHỌN", icon: Crown, order: 2, ink: "#5A4204", labelSurface: "#fff4cce6", voteInk: "#8A6508", tint: "#fff9e8",
-    header: "linear-gradient(135deg, #F7D774, #D4AF37 45%, #B8860B 70%, #F7D774)",
-    border: "linear-gradient(145deg, #FFF4CC, #D4AF37 30%, #8A6508 60%, #F7D774 82%, #FFF4CC)",
-    glow: "0 0 0 1px rgba(212,175,55,.4), 0 20px 60px -10px rgba(212,175,55,.45), 0 0 80px rgba(247,215,116,.25)",
-    badge: "linear-gradient(135deg, #5A4204, #795908 40%, #5A4204 70%, #725207)",
+    label: "DẪN ĐẦU BÌNH CHỌN", icon: Crown, order: 2, ink: "#5A4204", labelSurface: "#fff4cce6", voteInk: "#D97706", tint: "#fffdf5",
+    header: "linear-gradient(135deg, #FFF4CC, #F59E0B 45%, #D97706 70%, #FFF4CC)",
+    border: "linear-gradient(145deg, #FFFBEB, #FBBF24 30%, #B45309 60%, #F59E0B 82%, #FFFBEB)",
+    glow: "0 0 0 1px rgba(245,158,11,.4), 0 20px 60px -10px rgba(245,158,11,.45), 0 0 80px rgba(254,243,199,.3)",
+    badge: "linear-gradient(135deg, #78350F, #92400E 40%, #78350F 70%, #B45309)",
     entrance: "rank-enter-gold", duration: 900, shine: 900, count: 1000,
   },
   2: {
-    label: "VỊ TRÍ THỨ HAI", icon: Award, order: 1, ink: "#293B49", labelSurface: "#f5f8facc", voteInk: "#445866", tint: "#f0f4f7",
-    header: "linear-gradient(135deg, #e8edf1, #C9D1D9 40%, #8E9AA6 76%, #dce3e9)",
-    border: "linear-gradient(145deg, #f5f8fa, #C9D1D9 40%, #8E9AA6 72%, #dce3e9)",
-    glow: "0 14px 38px -15px rgba(103,125,145,.25)",
-    badge: "linear-gradient(135deg, #293B49, #516576, #293B49)",
+    label: "VỊ TRÍ THỨ HAI", icon: Award, order: 1, ink: "#0C4A6E", labelSurface: "#f0f9ffcc", voteInk: "#0284C7", tint: "#f5fbff",
+    header: "linear-gradient(135deg, #e0f2fe, #38BDF8 40%, #0284C7 76%, #bae6fd)",
+    border: "linear-gradient(145deg, #f0f9ff, #7DD3FC 40%, #0369A1 72%, #bae6fd)",
+    glow: "0 14px 38px -15px rgba(2,132,199,.25)",
+    badge: "linear-gradient(135deg, #075985, #0284C7, #075985)",
     entrance: "rank-enter-left", duration: 700, shine: 1800, count: 2200,
   },
   3: {
-    label: "VỊ TRÍ THỨ BA", icon: Medal, order: 3, ink: "#40200D", labelSurface: "#fff3e5cc", voteInk: "#7A4824", tint: "#faf0e7",
-    header: "linear-gradient(135deg, #f0d4b5, #D9A878 40%, #A8693A 76%, #e3bc94)",
-    border: "linear-gradient(145deg, #f4dec7, #D9A878 40%, #A8693A 72%, #e5c6a5)",
-    glow: "0 14px 38px -15px rgba(168,105,58,.24)",
-    badge: "linear-gradient(135deg, #40200D, #6d3a18, #40200D)",
+    label: "VỊ TRÍ THỨ BA", icon: Medal, order: 3, ink: "#14532D", labelSurface: "#f0fdf4cc", voteInk: "#16A34A", tint: "#f6fcf8",
+    header: "linear-gradient(135deg, #dcfce7, #4ADE80 40%, #16A34A 76%, #bbf7d0)",
+    border: "linear-gradient(145deg, #f0fdf4, #86EFAC 40%, #15803D 72%, #bbf7d0)",
+    glow: "0 14px 38px -15px rgba(22,163,74,.24)",
+    badge: "linear-gradient(135deg, #166534, #15803D, #166534)",
     entrance: "rank-enter-right", duration: 700, shine: 2000, count: 2200,
   },
 } as const;
@@ -62,9 +62,10 @@ export function TopRankCard({ rank, destination, delay, play }: TopRankCardProps
   const [complete, setComplete] = useState(false);
   const tilt = useRef<HTMLDivElement>(null);
   const pointerFrame = useRef(0);
-  const { user, handleVoteClick } = useVoting();
+  const { user, handleVoteClick, setDetailModalDestination } = useVoting();
   const voted = !!user?.votedIds.includes(destination.id);
   const count = useCountUp(destination.votes, { duration: 1600, start: countStarted });
+  const openDetail = () => setDetailModalDestination(toVotingDestination(destination));
   useEffect(() => {
     if (!play || reduced) return;
     const timer = window.setTimeout(() => setCountStarted(true), theme.count);
@@ -103,13 +104,32 @@ export function TopRankCard({ rank, destination, delay, play }: TopRankCardProps
         <div className="rank-glow" aria-hidden="true" />
         <article className="rank-frame" aria-label={`Hạng ${rank}: ${destination.name}`}>
           <div className="rank-surface">
-            <div className="rank-visual">
+            <div className="rank-visual cursor-pointer" onClick={openDetail} title={`Xem chi tiết bài thi ${destination.name}`}>
               <header className="rank-header"><span><Icon size={18} strokeWidth={1.8} />{theme.label}</span><span className="rank-badge-plate"><strong className="rank-badge">0{rank}</strong></span></header>
               <div className="rank-photo"><DestinationImage src={destination.image.src} alt={destination.name} region={destination.region} /><div className="rank-photo-shade" /><span className="rank-code">{destination.id}</span><div className="rank-place"><p><MapPin size={12} />{destination.province}</p><h3>{destination.name}</h3></div></div>
               <div className="rank-shine" aria-hidden="true" />
               {rank === 1 && <div className="rank-sparkles" aria-hidden="true">{SPARKLES.map((sparkle, index) => <span key={index} style={{ left:sparkle.x, top:sparkle.y, "--sparkle-delay":`${sparkle.delay + 1000}ms` } as CSSProperties}><FourPointStar /></span>)}</div>}
             </div>
-            <div className="rank-body"><p>{destination.summary}</p><div className="rank-actions"><div className="rank-vote-count"><span>Lượt bình chọn</span><strong><span className="sr-only">{destination.votes.toLocaleString("vi-VN")}</span><span className="rank-count-motion" aria-hidden="true">{count.toLocaleString("vi-VN")}</span><span className="rank-count-final" aria-hidden="true">{destination.votes.toLocaleString("vi-VN")}</span></strong></div><button className="vote-button" disabled={voted} onClick={() => handleVoteClick(toVotingDestination(destination))}>{voted ? <Check size={16} /> : <Heart size={16} />}{voted ? "Đã chọn" : "Bình chọn"}</button></div></div>
+            <div className="rank-body">
+              <div className="rank-actions">
+                <div className="rank-vote-count" onClick={openDetail} style={{ cursor: "pointer" }}>
+                  <span>Lượt bình chọn</span>
+                  <strong>
+                    <span className="sr-only">{destination.votes.toLocaleString("vi-VN")}</span>
+                    <span className="rank-count-motion" aria-hidden="true">{count.toLocaleString("vi-VN")}</span>
+                    <span className="rank-count-final" aria-hidden="true">{destination.votes.toLocaleString("vi-VN")}</span>
+                  </strong>
+                </div>
+                <button
+                  className={`vote-button ${voted ? "is-voted" : ""}`}
+                  disabled={voted}
+                  onClick={() => handleVoteClick(toVotingDestination(destination))}
+                >
+                  {voted ? <Check size={16} /> : <Heart size={16} />}
+                  {voted ? "Đã chọn" : "Bình chọn"}
+                </button>
+              </div>
+            </div>
           </div>
         </article>
         {rank === 1 && <div className="rank-burst" aria-hidden="true">{BURST.map(([x,y,rotation], index) => <span key={index} style={{ "--burst-x":`${x}px`, "--burst-y":`${y}px`, "--burst-turn":`${rotation}deg` } as CSSProperties}><FourPointStar /></span>)}</div>}

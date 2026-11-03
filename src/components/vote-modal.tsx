@@ -8,7 +8,24 @@ import { X, Heart, AlertCircle, CheckCircle2 } from "lucide-react";
 export function VoteModal() {
   const { voteModalDestination, setVoteModalDestination, confirmVote, user, loginModalOpen } = useVoting();
 
-  if (!voteModalDestination || loginModalOpen || !user) return null;
+  const isOpen = Boolean(voteModalDestination && !loginModalOpen && user);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.stop();
+    }
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.start();
+      }
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !voteModalDestination || !user) return null;
 
   const votesLeft = user?.votesRemaining || 0;
   const isVoted = user?.votedIds.includes(voteModalDestination.id);
@@ -20,7 +37,10 @@ export function VoteModal() {
   return (
     <div className="responsive-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
       {/* Modal Card Glassmorphism */}
-      <div className="responsive-modal-panel relative w-full max-w-md rounded-3xl bg-white/75 backdrop-blur-2xl border border-white/90 p-7 sm:p-9 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] space-y-6">
+      <div
+        data-lenis-prevent
+        className="responsive-modal-panel relative w-full max-w-md rounded-3xl bg-white/75 backdrop-blur-2xl border border-white/90 p-7 sm:p-9 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] space-y-6"
+      >
         {/* Close Button Glassmorphic */}
         <button
           onClick={() => setVoteModalDestination(null)}
@@ -32,8 +52,8 @@ export function VoteModal() {
 
         {/* Header Icon */}
         <div className="text-center space-y-2">
-          <div className="mx-auto h-16 w-16 rounded-full bg-[#b8e486]/20 border border-[#F5A623]/30 flex items-center justify-center text-[#F5A623] mb-2 shadow-xs">
-            <Heart className="h-8 w-8 fill-[#F5A623]" />
+          <div className="mx-auto h-16 w-16 rounded-full bg-[#FF9F00]/15 border border-[#FF9F00]/30 flex items-center justify-center text-[#FF9F00] mb-2 shadow-xs">
+            <Heart className="h-8 w-8 fill-[#FF9F00]" />
           </div>
           <h3 className="text-2xl font-black text-[#1B2B22] tracking-tight">
             Xác nhận bình chọn
@@ -107,10 +127,8 @@ export function VoteModal() {
           <button
             onClick={handleConfirm}
             disabled={votesLeft <= 0 || isVoted}
-            className={`w-2/3 py-3 rounded-2xl font-black text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-              votesLeft <= 0 || isVoted
-                ? "bg-zinc-200 text-zinc-400 cursor-not-allowed shadow-none"
-                : "bg-[#b8e486] hover:bg-[#a4d771] text-[#1B2B22] hover:shadow-lg"
+            className={`vote-button w-2/3 py-3 rounded-2xl font-black text-xs sm:text-sm cursor-pointer ${
+              votesLeft <= 0 || isVoted ? "is-voted" : ""
             }`}
           >
             <Heart className="h-4 w-4 fill-current" />

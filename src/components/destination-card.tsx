@@ -9,16 +9,39 @@ import { MapPin, CheckCircle2, Heart } from "lucide-react";
 interface DestinationCardProps {
   destination: Destination;
   rank: number;
+  index?: number;
 }
 
-export function DestinationCard({ destination, rank }: DestinationCardProps) {
-  const { user, handleVoteClick } = useVoting();
+export function DestinationCard({ destination, rank, index = 0 }: DestinationCardProps) {
+  const { user, handleVoteClick, setDetailModalDestination } = useVoting();
   const isVoted = user?.votedIds.includes(destination.id);
 
+  // Tính toán lớp/hàng (Hàng 0, 1, 2 tương ứng 3 lớp của lưới 4x3)
+  const layerIndex = Math.floor((index % 12) / 4);
+  const colIndex = index % 4;
+  const staggerDelay = `${layerIndex * 70 + colIndex * 35}ms`;
+
+  const openDetail = () => setDetailModalDestination(destination);
+
   return (
-    <div className="destination-card group rounded-2xl overflow-hidden bg-[#f0f4e9] border border-[#1F6B45]/15 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1">
-      {/* Top Image with Gradient Overlay */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-[#EBF5EE]">
+    <div
+      style={{ animationDelay: staggerDelay }}
+      className="destination-card group rounded-2xl overflow-hidden bg-white border border-[#026E4E]/12 shadow-sm hover:shadow-xl hover:border-[#026E4E]/30 transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1.5 animate-in fade-in-50 slide-in-from-bottom-4 duration-300 fill-mode-both"
+    >
+      {/* Top Image with Gradient Overlay - Clickable */}
+      <div
+        onClick={openDetail}
+        className="relative aspect-4/3 w-full overflow-hidden bg-[#EBF5EE] cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openDetail();
+          }
+        }}
+        aria-label={`Xem chi tiết bài thi ${destination.name}`}
+      >
         <DestinationImage
           region={destination.region}
           src={destination.imageUrl}
@@ -31,66 +54,80 @@ export function DestinationCard({ destination, rank }: DestinationCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
 
         {/* Top Badges */}
-        <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between">
+        <div className="absolute top-2.5 inset-x-2.5 flex items-center justify-between pointer-events-none">
           <span className="px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-wider">
-            #{rank} • {destination.code}
+            #{rank} • {destination.recordCode || destination.code}
           </span>
-          <span className="px-2 py-0.5 rounded-full bg-[#1F6B45]/85 backdrop-blur-md text-[10px] font-semibold text-white">
+          <span className="px-2 py-0.5 rounded-full bg-[#026E4E]/90 backdrop-blur-md text-[10px] font-semibold text-white">
             {destination.regionLabel}
           </span>
         </div>
 
         {/* Name & Province over Photo */}
-        <div className="absolute bottom-4 inset-x-5 text-white">
-          <div className="flex items-center gap-1 text-[11px] text-[#5BB5E8] font-medium mb-0.5">
+        <div className="absolute bottom-4 inset-x-5 text-white pointer-events-none">
+          <div className="flex items-center gap-1 text-[11px] text-[#00C2FF] font-medium mb-0.5">
             <MapPin className="h-3 w-3 shrink-0" />
             <span className="truncate">{destination.province}</span>
           </div>
-          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-white group-hover:text-[#b8e486] transition-colors">
+          <h3 className="font-bold text-sm sm:text-base leading-snug line-clamp-2 text-white group-hover:text-[#FFB020] transition-colors">
             {destination.name}
           </h3>
         </div>
       </div>
 
       {/* Card Content & Action */}
-      <div className="p-3.5 space-y-3 flex-1 flex flex-col justify-between">
-        <p className="text-sm text-[#4B5E52] leading-relaxed line-clamp-2">
+      <div className="p-4 space-y-3 flex-1 flex flex-col justify-between bg-white">
+        <p
+          onClick={openDetail}
+          className="text-sm text-[#4B6354] leading-relaxed line-clamp-2 cursor-pointer hover:text-[#0E382B]"
+        >
           {destination.brief}
         </p>
 
         {/* Vote count and CTA Button */}
         <div className="pt-2 border-t border-black/5 flex items-center justify-between gap-2">
-          <div>
-            <span className="text-[10px] text-[#4B5E52] block font-medium">Bình chọn</span>
+          <div onClick={openDetail} className="cursor-pointer">
+            <span className="text-[10px] text-[#4B6354] block font-medium">Bình chọn</span>
             <span
               key={destination.votes}
-              className="text-sm sm:text-base font-extrabold text-[#1F6B45] inline-block transition-transform duration-300 animate-in zoom-in-95"
+              className="text-sm sm:text-base font-extrabold text-[#026E4E] inline-block transition-transform duration-300 animate-in zoom-in-95"
             >
               {destination.votes.toLocaleString("vi-VN")}
             </span>
           </div>
 
-          <button
-            onClick={() => handleVoteClick(destination)}
-            disabled={isVoted}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1 cursor-pointer shrink-0 ${
-              isVoted
-                ? "bg-[#7CB342]/15 text-[#1F6B45] border border-[#7CB342]/30 cursor-not-allowed"
-                : "bg-[#b8e486] hover:bg-[#a4d771] text-[#1B2B22] shadow-xs hover:shadow"
-            }`}
-          >
-            {isVoted ? (
-              <>
-                <CheckCircle2 className="h-3.5 w-3.5 text-[#1F6B45]" />
-                <span>Đã bình chọn</span>
-              </>
-            ) : (
-              <>
-                <Heart className="h-3.5 w-3.5 fill-[#1B2B22]/20" />
-                <span>Bình chọn</span>
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={openDetail}
+              className="px-2.5 py-2 rounded-xl text-xs font-bold text-[#026E4E] bg-[#E6F1E8]/70 hover:bg-[#E6F1E8] transition-colors cursor-pointer"
+              title="Xem chi tiết bài thi"
+            >
+              Chi tiết
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleVoteClick(destination);
+              }}
+              disabled={isVoted}
+              className={`vote-button px-3.5 py-2 rounded-xl text-xs font-black cursor-pointer shrink-0 ${
+                isVoted ? "is-voted" : ""
+              }`}
+            >
+              {isVoted ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-[#026E4E]" />
+                  <span className="hidden sm:inline">Đã vote</span>
+                </>
+              ) : (
+                <>
+                  <Heart className="h-3.5 w-3.5 fill-white/80" />
+                  <span>Vote</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -11,6 +11,14 @@ import { DAILY_VOTE_LIMIT, OTP_RESEND_SECONDS } from "@/lib/auth/config";
 import { useCountdown } from "@/hooks/useCountdown";
 
 type Step = "phone" | "otp" | "account";
+
+function parsePhone(raw: string): string {
+  const clean = raw.trim().replace(/\s/g, "");
+  if (clean.startsWith("+84")) return `0${clean.slice(3)}`;
+  if (/^[35789]\d{8}$/.test(clean)) return `0${clean}`;
+  return clean;
+}
+
 function LoginPanel({ standalone }: { standalone: boolean }) {
   const auth = useAuth();
   const router = useRouter();
@@ -32,25 +40,42 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
   const mounted = useRef(true);
   const request = useRef(0);
   const pendingDestination = getRanking().find(destination => destination.id === auth.pendingDestinationId);
+
   let phoneError = "";
-  try { normalizePhone(`+84${phone}`); } catch (issue) { phoneError = issue instanceof Error ? issue.message : "Vui lòng kiểm tra số điện thoại."; }
+  try {
+    normalizePhone(parsePhone(phone));
+  } catch (issue) {
+    phoneError = issue instanceof Error ? issue.message : "Vui lòng kiểm tra số điện thoại.";
+  }
+
   const close = () => { ++request.current; auth.closeLoginModal(); if (standalone) router.push("/"); };
+
   useEffect(() => {
     mounted.current = true;
+    const req = request;
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
-    if (!standalone) document.body.style.overflow = "hidden";
+    if (!standalone) {
+      document.body.style.overflow = "hidden";
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.stop();
+      }
+    }
     panel.current?.querySelector<HTMLInputElement>("input")?.focus();
     return () => {
       mounted.current = false;
-      ++request.current;
+      ++req.current;
       if (!standalone) {
         document.body.style.overflow = overflow;
+        if (typeof window !== "undefined" && window.__lenis) {
+          window.__lenis.start();
+        }
         if (previous?.isConnected && !(previous instanceof HTMLButtonElement && previous.disabled)) previous.focus();
         else document.querySelector<HTMLButtonElement>(".account-trigger, .nav-login-button")?.focus();
       }
     };
   }, [standalone]);
+
   const run = async (operation: () => Promise<void>) => {
     if (busy) return;
     const token = ++request.current;
@@ -59,38 +84,45 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
     catch (issue) { if (mounted.current && token === request.current) setError(issue instanceof Error ? issue.message : "Có lỗi xảy ra. Vui lòng thử lại."); }
     finally { if (mounted.current && token === request.current) setBusy(false); }
   };
+
   const send = async (event: FormEvent) => {
     event.preventDefault(); setPhoneTouched(true);
     if (phoneError) { setError(phoneError); return; }
-    const normalized = normalizePhone(`+84${phone}`);
+    const normalized = normalizePhone(parsePhone(phone));
     await run(async () => {
       await auth.sendOtp(normalized);
       if (!mounted.current) return;
       setNormalizedPhone(normalized); setResendAt(Date.now() + OTP_RESEND_SECONDS * 1000); setOtp(Array(6).fill("")); setStep("otp");
     });
   };
+
   const resend = () => run(async () => {
     await auth.sendOtp(normalizedPhone);
     if (!mounted.current) return;
     setResendAt(Date.now() + OTP_RESEND_SECONDS * 1000); setOtp(Array(6).fill("")); inputs.current[0]?.focus();
   });
+
   const verify = async (event: FormEvent) => {
     event.preventDefault();
     if (otp.join("").length !== 6) { setError("Vui lòng nhập đủ 6 chữ số mã OTP."); return; }
     await run(async () => { await auth.verifyOtp(normalizedPhone, otp.join("")); if (standalone) router.push("/"); });
   };
+
   const submitAccount = async (event: FormEvent) => {
     event.preventDefault();
     if (!username.trim() || !password) { setError("Vui lòng nhập tài khoản và mật khẩu."); return; }
     await run(async () => { await auth.loginWithAccount(username, password); if (standalone) router.push("/"); });
   };
+
   const enterDigits = (index: number, text: string) => {
     if (!/^\d*$/.test(text)) return;
     const digits = text.slice(0, 6 - index).split("");
     setOtp(current => { const next = [...current]; if (!digits.length) next[index] = ""; else digits.forEach((digit, offset) => { next[index + offset] = digit; }); return next; });
     setError(""); inputs.current[Math.min(index + digits.length, 5)]?.focus();
   };
+
   const changeStep = (next: Step) => { setError(""); setStep(next); };
+
   return <div className={standalone ? "auth-page" : "auth-overlay"} onPointerDown={event => { if (!standalone && event.target === event.currentTarget) close(); }} onKeyDown={event => {
     if (event.key === "Escape") { event.stopPropagation(); close(); }
     if (event.key === "Tab" && !standalone) {
@@ -99,15 +131,33 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
-  }}><div ref={panel} className="auth-panel" role={standalone ? undefined : "dialog"} aria-modal={standalone ? undefined : true} aria-labelledby="auth-title" aria-describedby="auth-description">
+  }}><div ref={panel} data-lenis-prevent className="auth-panel" role={standalone ? undefined : "dialog"} aria-modal={standalone ? undefined : true} aria-labelledby="auth-title" aria-describedby="auth-description">
     <div className="auth-topline"><Link href="/" aria-label="Du lịch Nông thôn - Trang chủ"><Image src="/logo.png" alt="Du lịch Nông thôn" width={34} height={34} className="rounded-full" /></Link><button className="auth-close" onClick={close} aria-label="Đóng đăng nhập"><X size={19} /></button></div>
     <div className="auth-intro"><h2 id="auth-title">{step === "otp" ? "Nhập mã OTP" : "Đăng nhập"}</h2><p id="auth-description">{step === "otp" ? <>Mã xác thực 6 số cho <strong>{normalizedPhone}</strong>.</> : step === "phone" ? "Nhập số điện thoại để nhận mã OTP." : "Nhập tài khoản và mật khẩu của bạn."}</p></div>
     {pendingDestination && <div className="auth-destination"><span>Đăng nhập xong sẽ bình chọn cho</span><strong>{pendingDestination.name}</strong></div>}
     <div aria-live="assertive" aria-atomic="true">{(error || (step === "phone" && phoneTouched && phoneError)) && <p className="auth-error">{error || phoneError}</p>}</div>
     {step === "phone" && <form className="auth-form" onSubmit={send} noValidate>
-      <div><label htmlFor="auth-phone">Số điện thoại</label><div className="auth-input auth-phone-input"><span className="phone-prefix" aria-hidden="true">🇻🇳 <b>+84</b></span><input id="auth-phone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="912 345 678" value={phone} disabled={busy || auth.isLoading} aria-invalid={phoneTouched && !!phoneError} aria-describedby="phone-hint" onChange={event => { const value = event.target.value.replace(/\s/g, ""); setPhone(value.startsWith("+84") ? value.slice(3) : value.startsWith("0") ? value.slice(1) : value); setPhoneTouched(true); setError(""); }} /></div><small id="phone-hint" className="auth-phone-hint">Nhập 9 chữ số sau mã quốc gia +84.</small></div>
+      <div>
+        <label htmlFor="auth-phone">Số điện thoại</label>
+        <div className="auth-input">
+          <input
+            id="auth-phone"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            placeholder="Ví dụ: 0912 345 678"
+            value={phone}
+            disabled={busy || auth.isLoading}
+            aria-invalid={phoneTouched && !!phoneError}
+            onChange={event => {
+              setPhone(event.target.value);
+              setPhoneTouched(true);
+              setError("");
+            }}
+          />
+        </div>
+      </div>
       <button className="vote-button auth-submit" type="submit" disabled={busy || auth.isLoading}>{busy ? <><LoaderCircle className="animate-spin" size={17} />Đang gửi mã…</> : <>Gửi mã OTP <ArrowRight size={17} /></>}</button>
-      <button className="auth-back" type="button" disabled={busy} onClick={() => changeStep("account")}>Đăng nhập bằng tài khoản, mật khẩu</button>
     </form>}
     {step === "otp" && <form className="auth-form" onSubmit={verify} noValidate>
       <fieldset className="otp-fieldset" disabled={busy}><legend>Mã xác thực 6 chữ số</legend><div className="otp-boxes">{otp.map((digit, index) => <input key={index} ref={element => { inputs.current[index] = element; }} aria-label={`Chữ số OTP ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={6} value={digit} className={digit ? "is-filled" : ""} onChange={event => enterDigits(index, event.target.value)} onFocus={event => event.target.select()} onPaste={event => { event.preventDefault(); const value = event.clipboardData.getData("text").trim(); if (/^\d{1,6}$/.test(value)) enterDigits(index, value); }} onKeyDown={event => { if (event.key === "Backspace" && !digit && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowLeft" && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 5) inputs.current[index + 1]?.focus(); }} autoFocus={index === 0} />)}</div></fieldset>
@@ -126,6 +176,7 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
     <p className="auth-demo-note">Mỗi tài khoản có tối đa {DAILY_VOTE_LIMIT} lượt bình chọn mỗi ngày, không cộng dồn.</p>
   </div></div>;
 }
+
 export function LoginModal({ standalone = false }: { standalone?: boolean }) {
   const { loginModalOpen } = useAuth();
   return standalone || loginModalOpen ? <LoginPanel standalone={standalone} /> : null;

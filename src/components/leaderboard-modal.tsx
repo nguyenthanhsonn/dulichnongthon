@@ -8,6 +8,21 @@ import { X, Trophy, Crown, Award, Medal, CheckCircle2 } from "lucide-react";
 export function LeaderboardModal() {
   const { leaderboardModalOpen, setLeaderboardModalOpen, destinations, user, handleVoteClick } = useVoting();
 
+  React.useEffect(() => {
+    if (!leaderboardModalOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    if (typeof window !== "undefined" && window.__lenis) {
+      window.__lenis.stop();
+    }
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.start();
+      }
+    };
+  }, [leaderboardModalOpen]);
+
   if (!leaderboardModalOpen) return null;
 
   const sorted = [...destinations].sort((a, b) => b.votes - a.votes);
@@ -16,11 +31,14 @@ export function LeaderboardModal() {
   return (
     <div className="responsive-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
       {/* Modal Card Glassmorphism */}
-      <div className="responsive-modal-panel relative w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] flex flex-col overflow-hidden">
+      <div
+        data-lenis-prevent
+        className="responsive-modal-panel relative w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] flex flex-col overflow-hidden"
+      >
         {/* Header */}
         <div className="modal-header px-6 py-5 border-b border-black/5 bg-white/50 backdrop-blur-md flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-2xl bg-[#b8e486]/20 border border-[#F5A623]/30 flex items-center justify-center text-[#F5A623] shadow-xs">
+            <div className="h-10 w-10 rounded-2xl bg-[#FF9F00]/15 border border-[#FF9F00]/30 flex items-center justify-center text-[#FF9F00] shadow-xs">
               <Trophy className="h-5 w-5" />
             </div>
             <div>
@@ -54,9 +72,9 @@ export function LeaderboardModal() {
                 key={dest.id}
                 className={`leaderboard-row p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 ${
                   rank === 1
-                    ? "bg-[#b8e486]/15 border-[#F5A623] shadow-xs"
+                    ? "bg-[#FF9F00]/10 border-[#FF9F00] shadow-xs"
                     : rank === 2 || rank === 3
-                    ? "bg-white/80 border-[#7CB342]/40 shadow-2xs"
+                    ? "bg-white/80 border-[#026E4E]/30 shadow-2xs"
                     : "bg-white/60 border-white/80 shadow-2xs"
                 }`}
               >
@@ -107,10 +125,10 @@ export function LeaderboardModal() {
                       <div
                         className={`h-full rounded-full ${
                           rank === 1
-                            ? "bg-[#b8e486]"
+                            ? "bg-gradient-to-r from-[#FFB020] to-[#FF9500]"
                             : rank <= 3
-                            ? "bg-[#7CB342]"
-                            : "bg-[#1F6B45]"
+                            ? "bg-[#00C2FF]"
+                            : "bg-[#026E4E]"
                         }`}
                         style={{ width: `${percentage}%` }}
                       />
@@ -132,15 +150,13 @@ export function LeaderboardModal() {
                   <button
                     onClick={() => handleVoteClick(dest)}
                     disabled={isVoted}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
-                      isVoted
-                        ? "bg-[#7CB342]/15 text-[#1F6B45] border border-[#7CB342]/30 cursor-not-allowed"
-                        : "bg-[#b8e486] hover:bg-[#a4d771] text-[#1B2B22] shadow-xs"
+                    className={`vote-button px-3.5 py-1.5 rounded-xl text-xs font-black cursor-pointer ${
+                      isVoted ? "is-voted" : ""
                     }`}
                   >
                     {isVoted ? (
                       <>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-[#1F6B45]" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#026E4E]" />
                         <span>Đã vote</span>
                       </>
                     ) : (

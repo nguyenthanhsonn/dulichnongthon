@@ -10,6 +10,8 @@ export interface DestinationItem {
   id: string; // e.g. "NT-01"
   recordCode: string; // e.g. "DLNT2026-001"
   name: string;
+  title?: string;
+  destinationName?: string;
   fullName: string;
   province: string;
   address: string;
@@ -41,6 +43,11 @@ export interface DestinationItem {
   reviewNote?: string;
   relatedTo?: string[];
   sourceDetails?: string;
+  videoUrl?: string;
+  article?: {
+    title: string;
+    sections: { title: string; content: string }[];
+  };
   votes: number;
   hidden?: boolean;
   deletedAt?: number | null;
@@ -119,7 +126,23 @@ function readStorage(): DestinationItem[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed as DestinationItem[];
+      const seedMap = new Map(getSeedItems().map(s => [s.id, s]));
+      return (parsed as DestinationItem[]).map(item => {
+        const seed = seedMap.get(item.id);
+        if (seed) {
+          return {
+            ...item,
+            name: item.id === "NT-01" ? seed.name : item.name,
+            title: seed.title || item.title,
+            destinationName: seed.destinationName || item.destinationName,
+            videoUrl: item.videoUrl || seed.videoUrl,
+            article: item.article || seed.article,
+            summary: item.id === "NT-01" ? seed.summary : item.summary,
+            image: (item.id === "NT-01" || !item.image?.src) ? seed.image : item.image,
+          };
+        }
+        return item;
+      });
     }
     const seeded = getSeedItems();
     window.localStorage.setItem(DESTINATIONS_STORAGE_KEY, JSON.stringify(seeded));

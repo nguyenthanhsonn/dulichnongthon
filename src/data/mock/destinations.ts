@@ -5,7 +5,9 @@ export const destinations: Destination[] = [
   {
     "id": "NT-01",
     "recordCode": "DLNT2026-001",
-    "name": "Bản Khun",
+    "name": "Khám phá vẻ đẹp du lịch nông thôn Tuyên Quang",
+    "title": "Khám phá vẻ đẹp du lịch nông thôn Tuyên Quang",
+    "destinationName": "Bản Khun",
     "fullName": "Làng văn hóa du lịch cộng đồng thôn Bản Khun, xã Bằng Lang, tỉnh Tuyên Quang",
     "province": "Tuyên Quang",
     "address": "Thôn Bản Khun, xã Bằng Lang, tỉnh Tuyên Quang",
@@ -15,7 +17,33 @@ export const destinations: Destination[] = [
       "sinh-thai",
       "nong-nghiep"
     ],
-    "summary": "Khám phá bản làng Tày, Dao giữa thung lũng, tìm hiểu nhà sàn truyền thống và tham gia các hoạt động văn hóa cộng đồng.",
+    "summary": "Khám phá không gian làng quê, cảnh quan thiên nhiên và những giá trị văn hóa bản địa đặc sắc tại Tuyên Quang.",
+    "videoUrl": "https://vimeo.com/1242756178?share=copy&fl=sv&fe=ci",
+    "article": {
+      "title": "Khám phá vẻ đẹp du lịch nông thôn Tuyên Quang",
+      "sections": [
+        {
+          "title": "Giới thiệu",
+          "content": "Tuyên Quang là vùng đất giàu bản sắc văn hóa, nổi bật với cảnh quan thiên nhiên, không gian nông thôn và những nét đẹp trong đời sống cộng đồng địa phương. Du lịch nông thôn tại Tuyên Quang hướng đến việc khai thác những giá trị đặc trưng của làng quê, kết hợp bảo tồn văn hóa truyền thống với phát triển các sản phẩm và dịch vụ du lịch."
+        },
+        {
+          "title": "Trải nghiệm du lịch",
+          "content": "Du khách có cơ hội tìm hiểu đời sống người dân, khám phá các hoạt động sản xuất nông nghiệp, trải nghiệm văn hóa cộng đồng và thưởng thức những sản phẩm đặc trưng của địa phương. Những hoạt động này góp phần tạo nên trải nghiệm gần gũi, giúp du khách hiểu thêm về con người và bản sắc văn hóa vùng nông thôn Tuyên Quang."
+        },
+        {
+          "title": "Giá trị văn hóa và cộng đồng",
+          "content": "Một trong những định hướng quan trọng của du lịch nông thôn là phát huy vai trò của cộng đồng dân cư trong việc bảo tồn các giá trị truyền thống và phát triển sinh kế. Việc gắn kết du lịch với văn hóa bản địa, nghề truyền thống, sản phẩm OCOP và đặc sản địa phương góp phần nâng cao giá trị kinh tế, đồng thời quảng bá hình ảnh quê hương."
+        },
+        {
+          "title": "Hướng đến du lịch bền vững",
+          "content": "Phát triển du lịch nông thôn không chỉ nhằm thu hút du khách mà còn hướng đến bảo vệ cảnh quan, gìn giữ môi trường và phát huy những giá trị văn hóa đặc trưng. Thông qua Hội thi “Điểm đến du lịch nông thôn Việt Nam tốt nhất” năm 2026, tỉnh Tuyên Quang có cơ hội giới thiệu những điểm đến tiêu biểu, góp phần lan tỏa hình ảnh du lịch nông thôn Việt Nam."
+        },
+        {
+          "title": "Bình chọn điểm đến",
+          "content": "Hãy cùng khám phá và bình chọn cho những điểm đến du lịch nông thôn mà bạn yêu thích, góp phần tôn vinh cảnh quan, văn hóa và con người Việt Nam."
+        }
+      ]
+    },
     "highlights": [
       "Nhà sàn Tày, Dao",
       "Hát Then, đàn Tính",
@@ -35,8 +63,8 @@ export const destinations: Destination[] = [
     },
     "awards": [],
     "image": {
-      "src": "",
-      "alt": "Bản Khun, Tuyên Quang"
+      "src": "/images/destinations/tuyen-quang-ban-khun.jpg",
+      "alt": "Khám phá vẻ đẹp du lịch nông thôn Tuyên Quang - Bản Khun"
     },
     "sourceDetails": "Chủ thể; BQL và Điều hành làng văn hoá du lịch cộng đồng bản Kun\nQuy mô cộng đồng: 183 hộ\nSố hộ làm du lịch: 30 (16,4%)\nSố Lđ làm du lịch: 50\nHÌnh thành: 2021\nĐiểm nổi bật: Cảnh quan và hoạt động trải nghiệm\nTrò chơi dân gian\nThắng cảnh: Hang Bó Mì, Đồi cọ, Cầu tình yêu",
     "operator": "BQL và Điều hành làng văn hoá du lịch cộng đồng bản Khun"

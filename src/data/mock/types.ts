@@ -4,6 +4,8 @@ export interface Destination {
   id: string;
   recordCode: string;
   name: string;
+  title?: string;
+  destinationName?: string;
   fullName: string;
   province: string;
   address: string;
@@ -29,6 +31,11 @@ export interface Destination {
   needsReview?: boolean;
   reviewNote?: string;
   relatedTo?: string[];
+  videoUrl?: string;
+  article?: {
+    title: string;
+    sections: { title: string; content: string }[];
+  };
   /** Original “Nét khác biệt”; retains ranges, approximations and contradictory source numbers. */
   sourceDetails?: string;
 }

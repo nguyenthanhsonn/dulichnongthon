@@ -28,7 +28,11 @@ export function Navbar() {
     setMobileMenuOpen(false);
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      if (typeof window !== "undefined" && window.__lenis) {
+        window.__lenis.scrollTo(element, { offset: -70 });
+      } else {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
@@ -63,29 +67,29 @@ export function Navbar() {
           </div>
         </button>
 
-        {/* Desktop Navigation Links: Chữ Xanh đen #1B2B22 đậm nét, tương phản cao trên mọi nền trời mây */}
+        {/* Desktop Navigation Links: Chữ Xanh đen #0E382B đậm nét, tương phản cao trên mọi nền trời mây */}
         <div className="nav-links hidden xl:flex items-center gap-7 text-sm font-extrabold text-inherit">
           <button
             onClick={() => scrollToSection("hero")}
-            className="hover:text-[#1F6B45] transition-colors cursor-pointer"
+            className="hover:text-[#026E4E] transition-colors cursor-pointer"
           >
             Trang chủ
           </button>
           <button
             onClick={() => scrollToSection("destinations")}
-            className="hover:text-[#1F6B45] transition-colors cursor-pointer"
+            className="hover:text-[#026E4E] transition-colors cursor-pointer"
           >
             Điểm đến
           </button>
           <button
             onClick={() => scrollToSection("leaderboard")}
-            className="hover:text-[#1F6B45] transition-colors cursor-pointer"
+            className="hover:text-[#026E4E] transition-colors cursor-pointer"
           >
             Xếp hạng
           </button>
           <button
             onClick={() => setRulesModalOpen(true)}
-            className="hover:text-[#1F6B45] transition-colors cursor-pointer"
+            className="hover:text-[#026E4E] transition-colors cursor-pointer"
           >
             Thể lệ
           </button>
@@ -96,11 +100,11 @@ export function Navbar() {
           {user ? (
             <AccountMenu key={pathname} />
           ) : (
-            /* Nút Đăng nhập: Chủ đạo Xanh lá đậm #1F6B45 nổi bật, tương phản sắc nét */
+            /* Nút Đăng nhập: Ẩn đi khi ở giao diện responsive có nút 3 gạch (chỉ hiện trên desktop xl trở lên) */
             <button
               onClick={() => setLoginModalOpen(true)}
               disabled={isLoading}
-              className="nav-login-button hidden sm:inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#1F6B45] hover:bg-[#164e32] text-white text-xs sm:text-sm font-bold border border-white/40 shadow-md hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-0.5"
+              className="nav-login-button hidden xl:inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#026E4E] to-[#00875A] hover:from-[#01583E] hover:to-[#026E4E] text-white text-xs sm:text-sm font-bold border border-white/40 shadow-md hover:shadow-lg transition-all cursor-pointer transform hover:-translate-y-0.5"
             >
               <LogIn className="h-3.5 w-3.5" />
               <span>Đăng nhập</span>
@@ -121,11 +125,11 @@ export function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="mobile-nav xl:hidden mt-2 mx-auto max-w-5xl rounded-3xl bg-[#dce9d8]/98 backdrop-blur-2xl border border-white/80 p-5 shadow-2xl space-y-4 text-inherit">
+        <div className="mobile-nav xl:hidden mt-2 mx-auto max-w-5xl rounded-3xl bg-white/95 backdrop-blur-2xl border border-white/90 p-5 shadow-2xl space-y-4 text-[#0E382B]">
           {user && (
-            <div className="p-3 rounded-2xl bg-[#F2F7F4] border border-[#1F6B45]/20 flex items-center justify-between text-xs">
-              <span className="text-[#4B5E52]">Tài khoản: {user.phone}</span>
-              <span className="font-bold text-[#1F6B45] bg-white px-2.5 py-0.5 rounded-full shadow-xs">
+            <div className="p-3 rounded-2xl bg-[#F4FAF6] border border-[#026E4E]/20 flex items-center justify-between text-xs">
+              <span className="text-[#4B6354]">Tài khoản: {user.phone}</span>
+              <span className="font-bold text-[#026E4E] bg-white px-2.5 py-0.5 rounded-full shadow-xs">
                 Còn {user.votesRemaining}/{DAILY_VOTE_LIMIT} lượt
               </span>
             </div>
@@ -134,19 +138,19 @@ export function Navbar() {
           <div className="flex flex-col gap-1.5 text-sm font-bold text-inherit">
             <button
               onClick={() => scrollToSection("hero")}
-              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-[#EBF5EE] text-[#1F6B45]"
+              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-50 text-[#026E4E]"
             >
               Trang chủ
             </button>
             <button
               onClick={() => scrollToSection("destinations")}
-              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-[#EBF5EE]"
+              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-50"
             >
               Điểm đến (35)
             </button>
             <button
               onClick={() => scrollToSection("leaderboard")}
-              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-[#EBF5EE]"
+              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-50"
             >
               Bảng xếp hạng
             </button>
@@ -155,7 +159,7 @@ export function Navbar() {
                 setMobileMenuOpen(false);
                 setRulesModalOpen(true);
               }}
-              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-[#EBF5EE]"
+              className="text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-50"
             >
               Thể lệ cuộc thi
             </button>
@@ -178,7 +182,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   setLoginModalOpen(true);
                 }}
-                className="w-full py-3 rounded-full bg-[#1F6B45] text-white text-xs font-bold text-center shadow-md"
+                className="w-full py-3 rounded-full bg-gradient-to-r from-[#026E4E] to-[#00875A] text-white text-xs font-bold text-center shadow-md"
               >
                 Đăng nhập bằng số điện thoại
               </button>
