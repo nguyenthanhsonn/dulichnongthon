@@ -4,12 +4,14 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { getRanking } from "@/data/mock";
 import { toVotingDestination } from "@/data/destinations";
 import type { Destination } from "@/types/voting-destination";
+import { useVotingStore } from "@/stores/use-voting-store";
 import { AuthProvider, useAuth } from "@/lib/auth/AuthProvider";
 
 const VotingContext = createContext<VotingContextType | null>(null);
 function VotingBridge({ children }: { children: ReactNode }) {
   const auth = useAuth();
-  const destinations = getRanking(auth.totals).map(toVotingDestination);
+  const totals = useVotingStore(state => state.snapshot.totals);
+  const destinations = getRanking(totals).map(toVotingDestination);
   const [voteModalDestination, setVoteModalDestination] = useState<Destination | null>(null);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [rulesModalOpen, setRulesModalOpen] = useState(false);

@@ -8,6 +8,8 @@ import { DAILY_VOTE_LIMIT } from "@/lib/auth/config";
 import { destinations } from "@/data/mock";
 import { useCountdown } from "@/hooks/useCountdown";
 import { Toast } from "./toast";
+import { useVoteHistory } from "@/hooks/useVoteHistory";
+import { useVotingStore } from "@/stores/use-voting-store";
 
 const PROFILE_TOAST_ID = "profile-toast";
 
@@ -42,7 +44,11 @@ export function AccountMenu() {
 }
 
 function ProfileModal({ email, onClose }: { email: string; onClose: () => void }) {
-  const { resetAt, votesLeftToday, votesUsedToday, votedIdsToday, logout } = useAuth();
+  const { logout } = useAuth();
+  const votedIdsToday = useVoteHistory();
+  const resetAt = useVotingStore(state => state.snapshot.resetAt);
+  const votesUsedToday = votedIdsToday.length;
+  const votesLeftToday = Math.max(0, DAILY_VOTE_LIMIT - votesUsedToday);
   const { h, m, s } = useCountdown(resetAt);
   const [revealEmail, setRevealEmail] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);

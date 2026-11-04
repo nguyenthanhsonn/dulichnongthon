@@ -6,17 +6,16 @@ import { formatCountdown, getNextResetAt, getTodayKey } from "@/lib/time";
 import { authService } from "./authService";
 import { ALLOW_REVOTE_NEXT_DAY, DAILY_VOTE_LIMIT } from "./config";
 import { AuthError } from "./auth-error";
+import { useVotingStore } from "@/stores/use-voting-store";
 import type { AuthContextValue, AuthSnapshot, Session } from "@/types/auth";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
-const baseline = getRanking().map(item => ({ destinationId: item.id, votes: item.votes }));
-const initialSnapshot: AuthSnapshot = { user: null, daily: { date: "", votedIds: [] }, votedEver: [], totals: baseline, resetAt: 0 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [snapshot, setSnapshot] = useState<AuthSnapshot>(initialSnapshot);
-  const snapshotRef = useRef(snapshot);
+  const snapshot = useVotingStore(state => state.snapshot);
+  const isVoting = useVotingStore(state => state.isVoting);
+  const setIsVoting = useVotingStore(state => state.setIsVoting);
   const [isLoading, setIsLoading] = useState(true);
-  const [isVoting, setIsVoting] = useState(false);
   const voting = useRef(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingDestinationId, setPendingDestinationId] = useState<string | null>(null);
@@ -25,8 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const alive = useRef(true);
   const apply = useCallback((value: AuthSnapshot) => {
     if (!alive.current) return;
-    snapshotRef.current = value;
-    setSnapshot(value);
+    useVotingStore.getState().applySnapshot(value);
   }, []);
   const refresh = useCallback(async () => {
     const sequence = ++refreshSequence.current;
@@ -53,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const timer = window.setTimeout(() => void refresh(), Math.max(20, snapshot.resetAt - Date.now() + 20));
     // Also catches clock changes and a computer resuming across midnight.
     const interval = window.setInterval(() => {
-      if (getTodayKey() !== snapshotRef.current.daily.date) void refresh();
+      if (getTodayKey() !== useVotingStore.getState().snapshot.daily.date) void refresh();
     }, 1000);
     return () => { window.clearTimeout(timer); window.clearInterval(interval); };
   }, [snapshot.resetAt, refresh]);
@@ -98,10 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       voting.current = false;
       if (alive.current) setIsVoting(false);
     }
-  }, [apply, openLoginModal, refresh]);
+  }, [apply, openLoginModal, refresh, setIsVoting]);
   const vote = useCallback(async (destinationId: string) => {
     if (isLoading) { toast.info("Đang tải tài khoản. Vui lòng thử lại sau giây lát."); return false; }
-    if (!snapshotRef.current.user) { openLoginModal(destinationId); return false; }
+    if (!useVotingStore.getState().snapshot.user) { openLoginModal(destinationId); return false; }
     return performVote(destinationId);
   }, [isLoading, openLoginModal, performVote]);
   const finishLogin = useCallback(async () => {

@@ -3,7 +3,6 @@ import { CampaignContent } from "@/components/campaign-intro";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { SectionDivider } from "@/components/section-divider";
 import { AnimationProvider } from "@/components/animation-provider";
-import { VotingProvider } from "@/context/voting-context";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
 import { Top3Leaderboard } from "@/components/top3";
@@ -18,7 +17,7 @@ import { BackToTop } from "@/components/back-to-top";
 
 export default function Home() {
   return (
-    <VotingProvider>
+    <>
       <BackgroundVideo />
       <SmoothScroll />
       <AnimationProvider />
@@ -48,6 +47,6 @@ export default function Home() {
         <LeaderboardModal />
         <RulesModal />
       </div>
-    </VotingProvider>
+    </>
   );
 }

@@ -3,10 +3,13 @@
 import React from "react";
 import { DestinationImage } from "./destination-image";
 import { useVoting } from "@/context/voting-context";
+import { useVotingStore } from "@/stores/use-voting-store";
 import { X, Heart, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export function VoteModal() {
-  const { voteModalDestination, setVoteModalDestination, confirmVote, user, loginModalOpen } = useVoting();
+  const { voteModalDestination: selectedDestination, destinations, setVoteModalDestination, confirmVote, user, loginModalOpen } = useVoting();
+  const voteModalDestination = destinations.find(destination => destination.id === selectedDestination?.id) ?? null;
+  const isVoting = useVotingStore(state => state.isVoting);
 
   const panel = React.useRef<HTMLDivElement>(null);
   const isOpen = Boolean(voteModalDestination && !loginModalOpen && user);
@@ -36,7 +39,7 @@ export function VoteModal() {
   const isVoted = user?.votedIds.includes(voteModalDestination.id);
 
   const handleConfirm = () => {
-    confirmVote(voteModalDestination.id);
+    void confirmVote(voteModalDestination.id);
   };
 
   return (
@@ -154,11 +157,11 @@ export function VoteModal() {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={votesLeft <= 0 || isVoted}
+            disabled={isVoting || votesLeft <= 0 || isVoted}
             className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-(--campaign-pine) px-3 text-sm font-extrabold text-white shadow-md shadow-emerald-900/20 hover:bg-(--campaign-deep) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Heart className="h-4 w-4 fill-current" />
-            <span>Xác nhận bình chọn</span>
+            <span>{isVoting ? "Đang xác nhận…" : "Xác nhận bình chọn"}</span>
           </button>
         </div>
       </div>
