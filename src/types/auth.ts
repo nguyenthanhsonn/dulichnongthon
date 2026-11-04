@@ -1,6 +1,6 @@
 import type { VoteRecord } from "./mock-destination";
 
-export interface Session { phone: string; loggedInAt: number; }
+export interface Session { email: string; loggedInAt: number; }
 
 export interface DailyVoteState { date: string; votedIds: string[]; }
 
@@ -13,7 +13,7 @@ export interface AuthSnapshot {
 }
 
 export interface VoteEvent {
-  phone: string;
+  email: string;
   date: string;
   destinationId: string;
   timestamp?: number;
@@ -21,16 +21,15 @@ export interface VoteEvent {
 }
 
 export interface AuthService {
-  sendOtp(phone: string): Promise<void>;
-  verifyOtp(phone: string, otp: string): Promise<Session>;
-  verifyAccount(username: string, password: string): Promise<Session>;
+  sendOtp(email: string, password: string): Promise<void>;
+  verifyOtp(email: string, otp: string): Promise<Session>;
   logout(): Promise<void>;
   getSession(): Promise<Session | null>;
   getSnapshot(): Promise<AuthSnapshot>;
   vote(destinationId: string): Promise<AuthSnapshot>;
 }
 
-export type AuthErrorCode = "phone" | "otp" | "account" | "session" | "duplicate" | "limit" | "destination" | "storage";
+export type AuthErrorCode = "email" | "otp" | "account" | "session" | "duplicate" | "limit" | "destination" | "storage";
 
 export interface AuthContextValue {
   user: Session | null;
@@ -40,9 +39,8 @@ export interface AuthContextValue {
   pendingDestinationId: string | null;
   openLoginModal(destinationId?: string): void;
   closeLoginModal(): void;
-  sendOtp(phone: string): Promise<void>;
-  verifyOtp(phone: string, otp: string): Promise<void>;
-  loginWithAccount(username: string, password: string): Promise<void>;
+  sendOtp(email: string, password: string): Promise<void>;
+  verifyOtp(email: string, otp: string): Promise<void>;
   logout(errorToastContainerId?: string): Promise<void>;
   votesUsedToday: number;
   votesLeftToday: number;

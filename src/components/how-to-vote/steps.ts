@@ -15,8 +15,8 @@ export const STEPS: VotingStep[] = [
   },
   {
     step: 3,
-    title: "Xác thực số điện thoại qua OTP",
-    desc: "Nhập số điện thoại để nhận mã xác thực OTP 6 số qua tin nhắn hoàn toàn miễn phí và bảo mật tuyệt đối.",
+    title: "Đăng nhập và xác thực OTP",
+    desc: "Nhập email, mật khẩu rồi xác nhận mã OTP 6 số gửi qua email.",
     note: "01 tài khoản • Tối đa 3 lượt vote",
   },
   {

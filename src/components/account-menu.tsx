@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Clock3, Eye, EyeOff, LogOut, MapPin, Phone, UserRound, Vote, X } from "lucide-react";
+import { Clock3, Eye, EyeOff, LogOut, MapPin, Mail, UserRound, Vote, X } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { DAILY_VOTE_LIMIT } from "@/lib/auth/config";
 import { destinations } from "@/data/mock";
@@ -34,20 +34,20 @@ export function AccountMenu() {
         </span>
       </button>
       {open && createPortal(
-        <ProfileModal phone={user.phone} onClose={() => setOpen(false)} />,
+        <ProfileModal email={user.email} onClose={() => setOpen(false)} />,
         document.body,
       )}
     </>
   );
 }
 
-function ProfileModal({ phone, onClose }: { phone: string; onClose: () => void }) {
+function ProfileModal({ email, onClose }: { email: string; onClose: () => void }) {
   const { resetAt, votesLeftToday, votesUsedToday, votedIdsToday, logout } = useAuth();
   const { h, m, s } = useCountdown(resetAt);
-  const [revealPhone, setRevealPhone] = useState(false);
+  const [revealEmail, setRevealEmail] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
-  const masked = `${phone.slice(0, 4)} *** ${phone.slice(-3)}`;
+  const masked = `${email.slice(0, 2)}***@${email.split("@")[1]}`;
 
   useEffect(() => {
     const element = dialog.current;
@@ -99,19 +99,19 @@ function ProfileModal({ phone, onClose }: { phone: string; onClose: () => void }
         <div className="space-y-4 p-5 sm:p-6">
           <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-white/75 px-3 py-2.5">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-800">
-              <Phone aria-hidden="true" size={17} />
+              <Mail aria-hidden="true" size={17} />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-emerald-800">Số điện thoại</p>
-              <p className="font-bold tabular-nums">{revealPhone ? phone : masked}</p>
+              <p className="text-xs font-semibold text-emerald-800">Email</p>
+              <p className="break-all font-bold">{revealEmail ? email : masked}</p>
             </div>
             <button
               type="button"
-              onClick={() => setRevealPhone(value => !value)}
-              aria-label={revealPhone ? "Ẩn số điện thoại" : "Hiện số điện thoại"}
+              onClick={() => setRevealEmail(value => !value)}
+              aria-label={revealEmail ? "Ẩn email" : "Hiện email"}
               className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl text-emerald-800 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-emerald-700"
             >
-              {revealPhone ? <EyeOff size={18} /> : <Eye size={18} />}
+              {revealEmail ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
 

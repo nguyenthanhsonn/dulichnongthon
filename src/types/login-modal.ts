@@ -1,1 +1,1 @@
-export type Step = "phone" | "otp" | "account";
+export type Step = "account" | "otp";

@@ -154,9 +154,9 @@ export function RulesSteps() {
             03
           </div>
           <div>
-            <h5 className="font-extrabold text-[#0E382B]">Nhập số điện thoại & Xác thực OTP</h5>
+            <h5 className="font-extrabold text-[#0E382B]">Đăng nhập & Xác thực OTP</h5>
             <p className="text-xs text-[#4B6354] mt-0.5">
-              Nhập số điện thoại hợp lệ và điền mã OTP 6 chữ số gửi qua tin nhắn để kích hoạt quyền bình chọn.
+              Nhập email, mật khẩu và mã OTP 6 chữ số gửi qua email để kích hoạt quyền bình chọn.
             </p>
           </div>
         </div>
@@ -228,7 +228,7 @@ export function RulesValidity({ inline = false }: { inline?: boolean }) {
         <li className={inline ? "rounded-xl border border-emerald-900/15 bg-emerald-50/90 px-4 py-3" : "flex items-start gap-2.5 p-3 rounded-xl bg-white border border-black/5"}>
           {!inline && <CheckCircle2 className="h-4 w-4 text-[#026E4E] shrink-0 mt-0.5" />}
           <span className={inline ? "text-sm leading-relaxed text-emerald-950" : "text-xs text-[#4B6354]"}>
-            Không vượt quá giới hạn <strong>tối đa 03 điểm đến khác nhau</strong> cho mỗi số điện thoại.
+            Không vượt quá giới hạn <strong>tối đa 03 điểm đến khác nhau</strong> cho mỗi tài khoản.
           </span>
         </li>
         <li className={inline ? "rounded-xl border border-emerald-900/15 bg-emerald-50/90 px-4 py-3" : "flex items-start gap-2.5 p-3 rounded-xl bg-white border border-black/5"}>

@@ -50,7 +50,7 @@ export function HowToVote() {
           <div>
             <p className="campaign-info-label">Hướng dẫn bình chọn</p>
             <h2 id="how-heading" className="campaign-info-title"><span className="campaign-info-emphasis">Quy trình</span> 5 bước bình chọn</h2>
-            <p className="how-intro-copy">Mỗi số điện thoại được bình chọn tối đa 03 điểm đến khác nhau</p>
+            <p className="how-intro-copy">Mỗi tài khoản được bình chọn tối đa 03 điểm đến khác nhau</p>
           </div>
           <p className="how-otp">Xác thực OTP an toàn</p>
         </header>

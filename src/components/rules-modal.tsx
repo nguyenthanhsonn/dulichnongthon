@@ -136,12 +136,12 @@ export function RulesModal() {
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/40 border border-emerald-200/80 text-center">
                   <span className="block text-3xl font-black text-[#026E4E]">03</span>
                   <span className="text-xs font-bold text-[#0E382B] mt-1 block">Lượt vote / SĐT</span>
-                  <span className="text-[10px] text-[#4B6354]">Mỗi ngày một số điện thoại</span>
+                  <span className="text-[10px] text-[#4B6354]">Mỗi ngày một tài khoản</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/40 border border-emerald-200/80 text-center">
                   <span className="block text-3xl font-black text-[#026E4E]">OTP</span>
                   <span className="text-xs font-bold text-[#0E382B] mt-1 block">Bảo mật</span>
-                  <span className="text-[10px] text-[#4B6354]">Xác thực SMS miễn phí</span>
+                  <span className="text-[10px] text-[#4B6354]">Xác thực OTP qua email</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-50 to-amber-100/40 border border-amber-200/80 text-center">
                   <span className="block text-3xl font-black text-[#FF9F00]">16</span>

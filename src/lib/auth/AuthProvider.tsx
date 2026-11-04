@@ -123,10 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }, [finishLogin]);
-  const verifyOtp = useCallback((phone: string, otp: string) =>
-    completeLogin(() => authService.verifyOtp(phone, otp)), [completeLogin]);
-  const loginWithAccount = useCallback((username: string, password: string) =>
-    completeLogin(() => authService.verifyAccount(username, password)), [completeLogin]);
+  const verifyOtp = useCallback((email: string, otp: string) =>
+    completeLogin(() => authService.verifyOtp(email, otp)), [completeLogin]);
   const logout = useCallback(async (errorToastContainerId?: string) => {
     try {
       await authService.logout();
@@ -140,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const votesUsedToday = snapshot.daily.votedIds.length;
   return <AuthContext.Provider value={{
     user: snapshot.user, isLoading, isVoting, loginModalOpen, pendingDestinationId,
-    openLoginModal, closeLoginModal, sendOtp: authService.sendOtp, verifyOtp, loginWithAccount, logout,
+    openLoginModal, closeLoginModal, sendOtp: authService.sendOtp, verifyOtp, logout,
     votesUsedToday, votesLeftToday: Math.max(0, DAILY_VOTE_LIMIT - votesUsedToday),
     votedIdsToday: snapshot.daily.votedIds, resetAt: snapshot.resetAt,
     vote, hasVoted: destinationId => snapshot.daily.votedIds.includes(destinationId) || (!ALLOW_REVOTE_NEXT_DAY && snapshot.votedEver.includes(destinationId)),

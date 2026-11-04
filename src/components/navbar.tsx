@@ -131,7 +131,7 @@ export function Navbar() {
         <div className="mobile-nav xl:hidden mt-2 mx-auto max-w-[820px] rounded-3xl bg-white/95 backdrop-blur-2xl border border-[#026E4E]/15 p-5 shadow-2xl space-y-4 text-[#0E382B]">
           {user && (
             <div className="p-3 rounded-2xl bg-[#F4FAF6] border border-[#026E4E]/15 flex items-center justify-between text-xs text-[#0E382B]">
-              <span>Tài khoản: {user.phone}</span>
+              <span>Tài khoản: {user.email}</span>
               <span className="font-bold text-white bg-[#026E4E] px-2.5 py-0.5 rounded-full shadow-xs">
                 Còn {user.votesRemaining}/{DAILY_VOTE_LIMIT} lượt
               </span>
@@ -168,7 +168,7 @@ export function Navbar() {
                 }}
                 className="w-full text-center py-2.5 text-xs font-semibold text-rose-800 rounded-xl hover:bg-rose-50"
               >
-                Đăng xuất ({user.phone})
+                Đăng xuất ({user.email})
               </button>
             ) : (
               <button
@@ -178,7 +178,7 @@ export function Navbar() {
                 }}
                 className="w-full py-3 rounded-full bg-gradient-to-r from-[#235347] to-[#163832] text-white text-xs font-bold text-center shadow-md hover:from-[#163832] hover:to-[#0B2B26]"
               >
-                Đăng nhập bằng số điện thoại
+                Đăng nhập bằng email
               </button>
             )}
           </div>

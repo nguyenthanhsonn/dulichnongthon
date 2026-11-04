@@ -13,7 +13,7 @@ function VotingBridge({ children }: { children: ReactNode }) {
   const [voteModalDestination, setVoteModalDestination] = useState<Destination | null>(null);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [rulesModalOpen, setRulesModalOpen] = useState(false);
-  const user = auth.user ? { phone: auth.user.phone, votesRemaining: auth.votesLeftToday, votedIds: auth.votedIdsToday } : null;
+  const user = auth.user ? { email: auth.user.email, votesRemaining: auth.votesLeftToday, votedIds: auth.votedIdsToday } : null;
   const handleVoteClick = (destination: Destination) => {
     if (!auth.user || auth.hasVoted(destination.id) || auth.votesLeftToday === 0) {
       void auth.vote(destination.id);
@@ -32,7 +32,6 @@ function VotingBridge({ children }: { children: ReactNode }) {
     setLoginModalOpen: open => { if (open) auth.openLoginModal(); else auth.closeLoginModal(); },
     voteModalDestination, setVoteModalDestination,
     leaderboardModalOpen, setLeaderboardModalOpen, rulesModalOpen, setRulesModalOpen,
-    loginUser: (phone: string) => { void auth.verifyOtp(phone, "123456").catch(() => {}); },
     logoutUser: auth.logout,
     handleVoteClick, confirmVote, totalVotes: destinations.reduce((sum, destination) => sum + destination.votes, 0),
   }}>{children}</VotingContext.Provider>;

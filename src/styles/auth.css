@@ -1,4 +1,4 @@
-/* Shared account, phone and OTP sign-in surface. */
+/* Shared email and OTP sign-in surface. */
 .auth-overlay, .auth-page { display: flex; align-items: center; justify-content: center; padding: 28px 20px; color: #0E382B; }
 .auth-overlay { position: fixed; inset: 0; z-index: 70; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(12px); overflow-y: auto; }
 .auth-page { min-height: 100svh; background: radial-gradient(ellipse at 15% 10%, #E6F4EA, transparent 60%), #F4FAF6; }
@@ -13,7 +13,7 @@
 .auth-intro { padding-top: 22px; }
 .auth-intro h2 { font-size: 25px; line-height: 1.35; font-weight: 700; letter-spacing: -.04em; color: #0E382B; }
 .auth-intro > p:last-child { color: #4B6354; font-size: 12px; line-height: 1.8; margin: 8px 0 24px; }
-.auth-intro strong { color: #026E4E; white-space: nowrap; }
+.auth-intro strong { color: #026E4E; overflow-wrap: anywhere; }
 .auth-form { display: flex; flex-direction: column; gap: 18px; }
 .auth-form label, .otp-fieldset legend { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: #0E382B; }
 .auth-input { display: flex; align-items: center; gap: 11px; background: #F8FCF9; border: 1px solid rgba(2, 110, 78, 0.15); border-radius: 12px; padding: 0 14px; color: #0E382B; }
@@ -81,3 +81,5 @@
 @media (max-width: 480px) and (min-height: 601px) {
   .auth-panel { max-height: calc(100dvh - 32px); }
 }
+
+.auth-otp-page { background: rgba(0, 0, 0, 0.65); }

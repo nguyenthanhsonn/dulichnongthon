@@ -4,12 +4,12 @@ import { ALLOW_REVOTE_NEXT_DAY, AUTH_STORAGE_KEYS, DAILY_VOTE_LIMIT, DEMO_ACCOUN
 import { AuthError } from "./auth-error";
 import type { AuthService, AuthSnapshot, DailyVoteState, ServiceOptions, Session, VoteEvent } from "@/types/auth";
 
-export function normalizePhone(phone: string): string {
-  const clean = phone.replace(/\s/g, "");
-  if (!/^(0|\+84)(3|5|7|8|9)\d{8}$/.test(clean)) {
-    throw new AuthError("phone", "Số điện thoại Việt Nam không hợp lệ. Vui lòng kiểm tra lại.");
+export function normalizeEmail(email: string): string {
+  const clean = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) {
+    throw new AuthError("email", "Vui lòng nhập email hợp lệ.");
   }
-  return clean.startsWith("+84") ? `0${clean.slice(3)}` : clean;
+  return clean;
 }
 let fallbackLock: Promise<void> = Promise.resolve();
 async function exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -28,6 +28,7 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
   const baseline = getRanking().map(item => ({ destinationId: item.id, votes: item.votes }));
   const validIds = new Set(baseline.map(item => item.destinationId));
   const memory = new Map<string, string>();
+  let pendingEmail: string | null = null;
   function read(key: string): unknown {
     try {
       const target = storage();
@@ -46,26 +47,27 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
   }
   function session(): Session | null {
     const value = read(AUTH_STORAGE_KEYS.session);
-    if (!isObject(value) || typeof value.phone !== "string" || typeof value.loggedInAt !== "number" || !Number.isFinite(value.loggedInAt)) return null;
-    try { return { phone: normalizePhone(value.phone), loggedInAt: value.loggedInAt }; } catch { return null; }
+    if (!isObject(value) || typeof value.email !== "string" || typeof value.loggedInAt !== "number" || !Number.isFinite(value.loggedInAt)) return null;
+    try { return { email: normalizeEmail(value.email), loggedInAt: value.loggedInAt }; } catch { return null; }
   }
   function ledger(): VoteEvent[] {
     const value = read(AUTH_STORAGE_KEYS.ledger);
     if (!Array.isArray(value)) return [];
     const seen = new Set<string>();
     return value.flatMap((item: unknown): VoteEvent[] => {
-      if (!isObject(item) || typeof item.phone !== "string" || typeof item.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(item.date) || typeof item.destinationId !== "string" || !validIds.has(item.destinationId)) return [];
+      if (!isObject(item) || (typeof item.email !== "string" && typeof item.phone !== "string") || typeof item.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(item.date) || typeof item.destinationId !== "string" || !validIds.has(item.destinationId)) return [];
       try {
-        const phone = normalizePhone(item.phone);
-        const key = `${phone}:${item.date}:${item.destinationId}`;
+        const identity = typeof item.email === "string" ? item.email : item.phone as string;
+        const email = /^0[35789]\d{8}$/.test(identity) ? identity : normalizeEmail(identity);
+        const key = `${email}:${item.date}:${item.destinationId}`;
         if (seen.has(key)) return [];
         seen.add(key);
-        return [{ phone, date: item.date, destinationId: item.destinationId }];
+        return [{ email, date: item.date, destinationId: item.destinationId }];
       } catch { return []; }
     });
   }
-  function savedDaily(phone: string): DailyVoteState | null {
-    const value = read(AUTH_STORAGE_KEYS.dailyVotes(phone));
+  function savedDaily(email: string): DailyVoteState | null {
+    const value = read(AUTH_STORAGE_KEYS.dailyVotes(email));
     if (!isObject(value) || typeof value.date !== "string" || !Array.isArray(value.votedIds)) return null;
     const ids = value.votedIds.filter((id: unknown): id is string => typeof id === "string" && validIds.has(id));
     return { date: value.date, votedIds: [...new Set(ids)] };
@@ -74,41 +76,46 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
     const user = session();
     const events = ledger();
     const date = getTodayKey(now());
-    const saved = user ? savedDaily(user.phone) : null;
-    const todayEvents = user ? events.filter(item => item.phone === user.phone && item.date === date) : [];
+    const saved = user ? savedDaily(user.email) : null;
+    const todayEvents = user ? events.filter(item => item.email === user.email && item.date === date) : [];
     const daily = { date, votedIds: [...new Set([...(saved?.date === date ? saved.votedIds : []), ...todayEvents.map(item => item.destinationId)])] };
-    const votedEver = user ? [...new Set([...(saved?.votedIds ?? []), ...events.filter(item => item.phone === user.phone).map(item => item.destinationId)])] : [];
+    const votedEver = user ? [...new Set([...(saved?.votedIds ?? []), ...events.filter(item => item.email === user.email).map(item => item.destinationId)])] : [];
     const legacy = read(AUTH_STORAGE_KEYS.legacyTotals);
     const totals = baseline.map(item => {
       const previous: unknown = Array.isArray(legacy) ? legacy.find((record: unknown) => isObject(record) && (record.id === item.destinationId || record.destinationId === item.destinationId)) : null;
       const imported = isObject(previous) && typeof previous.votes === "number" && Number.isSafeInteger(previous.votes) ? Math.max(item.votes, previous.votes) : item.votes;
       return { ...item, votes: imported + events.filter(event => event.destinationId === item.destinationId).length };
     });
-    if (user && (saved?.date !== date || JSON.stringify(saved.votedIds) !== JSON.stringify(daily.votedIds))) write(AUTH_STORAGE_KEYS.dailyVotes(user.phone), daily, false);
+    if (user && (saved?.date !== date || JSON.stringify(saved.votedIds) !== JSON.stringify(daily.votedIds))) write(AUTH_STORAGE_KEYS.dailyVotes(user.email), daily, false);
     return { user, daily, votedEver, totals, resetAt: getNextResetAt(now()) };
   }
-  function createSession(phone: string): Session {
-    const value = { phone: normalizePhone(phone), loggedInAt: now() };
+  function createSession(email: string): Session {
+    const value = { email: normalizeEmail(email), loggedInAt: now() };
     write(AUTH_STORAGE_KEYS.session, value);
     return value;
   }
   return {
-    async sendOtp(phone) {
-      normalizePhone(phone);
+    async sendOtp(email, password) {
+      const normalized = normalizeEmail(email);
+      if (normalized !== DEMO_ACCOUNT.email || password !== DEMO_ACCOUNT.password) {
+        throw new AuthError("account", "Email hoặc mật khẩu không đúng.");
+      }
+      pendingEmail = null;
       await new Promise<void>(resolve => setTimeout(resolve, options.sendDelayMs ?? 800));
+      pendingEmail = normalized;
     },
-    async verifyOtp(phone, otp) {
-      const normalized = normalizePhone(phone);
+    async verifyOtp(email, otp) {
+      const normalized = normalizeEmail(email);
+      if (pendingEmail !== normalized) throw new AuthError("account", "Vui lòng đăng nhập lại để nhận mã OTP.");
       if (otp !== "123456") throw new AuthError("otp", "Mã OTP không đúng");
-      return createSession(normalized);
-    },
-    async verifyAccount(username, password) {
-      if (username.trim() !== DEMO_ACCOUNT.username || password !== DEMO_ACCOUNT.password) throw new AuthError("account", "Tài khoản hoặc mật khẩu không đúng.");
-      return createSession(DEMO_ACCOUNT.phone);
+      const result = createSession(normalized);
+      pendingEmail = null;
+      return result;
     },
     async getSession() { return session(); },
     async getSnapshot() { return makeSnapshot(); },
     async logout() {
+      pendingEmail = null;
       await exclusive(async () => {
         try { storage()?.removeItem(AUTH_STORAGE_KEYS.session); memory.delete(AUTH_STORAGE_KEYS.session); }
         catch { throw new AuthError("storage", "Chưa thể đăng xuất. Vui lòng thử lại."); }
@@ -123,9 +130,9 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
         if (snapshot.daily.votedIds.length >= DAILY_VOTE_LIMIT) throw new AuthError("limit", `Bạn đã dùng hết ${DAILY_VOTE_LIMIT} lượt hôm nay.`);
         // One authoritative append commits quota and totals together. Daily keys are rebuildable views.
         const events = ledger();
-        events.push({ phone: snapshot.user.phone, date: snapshot.daily.date, destinationId });
+        events.push({ email: snapshot.user.email, date: snapshot.daily.date, destinationId });
         write(AUTH_STORAGE_KEYS.ledger, events);
-        write(AUTH_STORAGE_KEYS.dailyVotes(snapshot.user.phone), { date: snapshot.daily.date, votedIds: [...snapshot.daily.votedIds, destinationId] }, false);
+        write(AUTH_STORAGE_KEYS.dailyVotes(snapshot.user.email), { date: snapshot.daily.date, votedIds: [...snapshot.daily.votedIds, destinationId] }, false);
         return makeSnapshot();
       });
     },

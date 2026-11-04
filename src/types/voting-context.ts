@@ -1,6 +1,6 @@
 import type { Destination } from "./voting-destination";
 
-export interface UserState { phone: string; votesRemaining: number; votedIds: string[]; }
+export interface UserState { email: string; votesRemaining: number; votedIds: string[]; }
 
 export interface VotingContextType {
   user: UserState | null;
@@ -13,7 +13,6 @@ export interface VotingContextType {
   setLeaderboardModalOpen(open: boolean): void;
   rulesModalOpen: boolean;
   setRulesModalOpen(open: boolean): void;
-  loginUser(phone: string): void;
   logoutUser(): Promise<void>;
   confirmVote(destinationId: string): Promise<boolean>;
   handleVoteClick(destination: Destination): void;
