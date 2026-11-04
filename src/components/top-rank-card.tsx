@@ -1,8 +1,9 @@
 "use client";
+import type { TopRankCardProps } from "@/types/top-rank-card";
 
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import Link from "next/link";
 import { Award, Check, Crown, Heart, Medal, MapPin } from "lucide-react";
-import type { RankedDestination } from "@/data/mock";
 import { toVotingDestination } from "@/data/destinations";
 import { useVoting } from "@/context/voting-context";
 import { useCountUp } from "@/hooks/useCountUp";
@@ -10,7 +11,6 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { DestinationImage } from "./destination-image";
 
-export type TopRank = 1 | 2 | 3;
 export const RANK_THEME = {
   1: {
     label: "DẪN ĐẦU BÌNH CHỌN", icon: Crown, order: 2, ink: "#5A4204", labelSurface: "#fff4cce6", voteInk: "#D97706", tint: "#fffdf5",
@@ -50,7 +50,6 @@ const BURST = [
   [53,-48,35],[-57,-34,-60],[-143,-15,80],[-22,-155,110],
 ] as const;
 function FourPointStar() { return <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0 10 6 16 8 10 10 8 16 6 10 0 8 6 6Z" /></svg>; }
-interface TopRankCardProps { rank: TopRank; destination: RankedDestination; delay: number; play: boolean; }
 
 export function TopRankCard({ rank, destination, delay, play }: TopRankCardProps) {
   const theme = RANK_THEME[rank];
@@ -62,10 +61,10 @@ export function TopRankCard({ rank, destination, delay, play }: TopRankCardProps
   const [complete, setComplete] = useState(false);
   const tilt = useRef<HTMLDivElement>(null);
   const pointerFrame = useRef(0);
-  const { user, handleVoteClick, setDetailModalDestination } = useVoting();
+  const { user, handleVoteClick } = useVoting();
   const voted = !!user?.votedIds.includes(destination.id);
   const count = useCountUp(destination.votes, { duration: 1600, start: countStarted });
-  const openDetail = () => setDetailModalDestination(toVotingDestination(destination));
+  const detailUrl = `/diem-den/${destination.id}`;
   useEffect(() => {
     if (!play || reduced) return;
     const timer = window.setTimeout(() => setCountStarted(true), theme.count);
@@ -104,22 +103,22 @@ export function TopRankCard({ rank, destination, delay, play }: TopRankCardProps
         <div className="rank-glow" aria-hidden="true" />
         <article className="rank-frame" aria-label={`Hạng ${rank}: ${destination.name}`}>
           <div className="rank-surface">
-            <div className="rank-visual cursor-pointer" onClick={openDetail} title={`Xem chi tiết bài thi ${destination.name}`}>
+            <Link href={detailUrl} prefetch={true} className="rank-visual cursor-pointer block" title={`Xem chi tiết bài thi ${destination.name}`}>
               <header className="rank-header"><span><Icon size={18} strokeWidth={1.8} />{theme.label}</span><span className="rank-badge-plate"><strong className="rank-badge">0{rank}</strong></span></header>
               <div className="rank-photo"><DestinationImage src={destination.image.src} alt={destination.name} region={destination.region} /><div className="rank-photo-shade" /><span className="rank-code">{destination.id}</span><div className="rank-place"><p><MapPin size={12} />{destination.province}</p><h3>{destination.name}</h3></div></div>
               <div className="rank-shine" aria-hidden="true" />
               {rank === 1 && <div className="rank-sparkles" aria-hidden="true">{SPARKLES.map((sparkle, index) => <span key={index} style={{ left:sparkle.x, top:sparkle.y, "--sparkle-delay":`${sparkle.delay + 1000}ms` } as CSSProperties}><FourPointStar /></span>)}</div>}
-            </div>
+            </Link>
             <div className="rank-body">
               <div className="rank-actions">
-                <div className="rank-vote-count" onClick={openDetail} style={{ cursor: "pointer" }}>
+                <Link href={detailUrl} className="rank-vote-count cursor-pointer block">
                   <span>Lượt bình chọn</span>
                   <strong>
                     <span className="sr-only">{destination.votes.toLocaleString("vi-VN")}</span>
                     <span className="rank-count-motion" aria-hidden="true">{count.toLocaleString("vi-VN")}</span>
                     <span className="rank-count-final" aria-hidden="true">{destination.votes.toLocaleString("vi-VN")}</span>
                   </strong>
-                </div>
+                </Link>
                 <button
                   className={`vote-button ${voted ? "is-voted" : ""}`}
                   disabled={voted}

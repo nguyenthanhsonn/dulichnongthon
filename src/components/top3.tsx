@@ -4,7 +4,8 @@ import { getRanking } from "@/data/mock";
 import { useVoting } from "@/context/voting-context";
 import { useInView } from "@/hooks/useInView";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { TopRankCard, type TopRank } from "./top-rank-card";
+import { TopRankCard } from "./top-rank-card";
+import type { TopRank } from "@/types/top-rank-card";
 
 export function Top3Leaderboard() {
   const { destinations, setLeaderboardModalOpen } = useVoting();

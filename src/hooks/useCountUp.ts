@@ -1,7 +1,7 @@
 "use client";
+import type { CountUpOptions } from "@/types/count-up";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "./useReducedMotion";
-interface CountUpOptions { duration?: number; start: boolean; }
 export function useCountUp(target: number, { duration = 1600, start }: CountUpOptions) {
   const reducedMotion = useReducedMotion();
   const [value, setValue] = useState(0);

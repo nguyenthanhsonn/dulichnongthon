@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { DestinationImage } from "./destination-image";
 import { useVoting } from "@/context/voting-context";
 import { X, Trophy, Crown, Award, Medal, CheckCircle2 } from "lucide-react";
@@ -29,11 +30,11 @@ export function LeaderboardModal() {
   const maxVotes = sorted[0]?.votes || 1;
 
   return (
-    <div className="responsive-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="responsive-modal-overlay modal-enter-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
       {/* Modal Card Glassmorphism */}
       <div
         data-lenis-prevent
-        className="responsive-modal-panel relative w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] flex flex-col overflow-hidden"
+        className="responsive-modal-panel modal-enter-panel relative w-full max-w-3xl max-h-[90vh] rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/90 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="modal-header px-6 py-5 border-b border-black/5 bg-white/50 backdrop-blur-md flex items-center justify-between">
@@ -96,22 +97,31 @@ export function LeaderboardModal() {
                   </div>
 
                   {/* Thumbnail */}
-                  <div className="leaderboard-thumb relative h-12 w-16 rounded-xl overflow-hidden shrink-0 border border-white shadow-xs">
+                  <Link
+                    href={`/diem-den/${dest.id}`}
+                    onClick={() => setLeaderboardModalOpen(false)}
+                    className="leaderboard-thumb relative h-12 w-16 rounded-xl overflow-hidden shrink-0 border border-white shadow-xs block hover:opacity-90 transition-opacity"
+                    title={`Xem chi tiết ${dest.name}`}
+                  >
                     <DestinationImage
-          region={dest.region}
+                      region={dest.region}
                       src={dest.imageUrl}
                       alt={dest.name}
                       fill
                       className="object-cover"
                     />
-                  </div>
+                  </Link>
 
                   {/* Text details */}
                   <div className="min-w-0 flex-1">
                     <div className="leaderboard-name-row flex items-center gap-2">
-                      <h4 className="font-bold text-sm text-[#1B2B22] truncate">
+                      <Link
+                        href={`/diem-den/${dest.id}`}
+                        onClick={() => setLeaderboardModalOpen(false)}
+                        className="font-bold text-sm text-[#1B2B22] hover:text-[#026E4E] transition-colors truncate block"
+                      >
                         {dest.name}
-                      </h4>
+                      </Link>
                       <span className="leaderboard-code text-[10px] px-1.5 py-0.2 rounded-md bg-[#1F6B45]/10 text-[#1F6B45] font-semibold">
                         {dest.code}
                       </span>

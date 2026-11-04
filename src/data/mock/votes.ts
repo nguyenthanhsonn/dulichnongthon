@@ -1,5 +1,5 @@
 import { destinations } from "./destinations";
-import type { VoteRecord } from "./types";
+import type { VoteRecord } from "@/types/mock-destination";
 
 export const MOCK_VOTE_SEED = 2026;
 export const MOCK_VOTE_TOTAL = 377_230;

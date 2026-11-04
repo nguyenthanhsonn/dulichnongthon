@@ -1,19 +1,15 @@
 "use client";
+import type { DestinationCardProps } from "@/types/destination-card";
 
 import React from "react";
+import Link from "next/link";
 import { DestinationImage } from "./destination-image";
-import { Destination } from "@/data/destinations";
 import { useVoting } from "@/context/voting-context";
 import { MapPin, CheckCircle2, Heart } from "lucide-react";
 
-interface DestinationCardProps {
-  destination: Destination;
-  rank: number;
-  index?: number;
-}
 
 export function DestinationCard({ destination, rank, index = 0 }: DestinationCardProps) {
-  const { user, handleVoteClick, setDetailModalDestination } = useVoting();
+  const { user, handleVoteClick } = useVoting();
   const isVoted = user?.votedIds.includes(destination.id);
 
   // Tính toán lớp/hàng (Hàng 0, 1, 2 tương ứng 3 lớp của lưới 4x3)
@@ -21,7 +17,7 @@ export function DestinationCard({ destination, rank, index = 0 }: DestinationCar
   const colIndex = index % 4;
   const staggerDelay = `${layerIndex * 70 + colIndex * 35}ms`;
 
-  const openDetail = () => setDetailModalDestination(destination);
+  const detailUrl = `/diem-den/${destination.id}`;
 
   return (
     <div
@@ -29,18 +25,10 @@ export function DestinationCard({ destination, rank, index = 0 }: DestinationCar
       className="destination-card group rounded-2xl overflow-hidden bg-white border border-[#026E4E]/12 shadow-sm hover:shadow-xl hover:border-[#026E4E]/30 transition-all duration-300 flex flex-col justify-between transform hover:-translate-y-1.5 animate-in fade-in-50 slide-in-from-bottom-4 duration-300 fill-mode-both"
     >
       {/* Top Image with Gradient Overlay - Clickable */}
-      <div
-        onClick={openDetail}
-        className="relative aspect-4/3 w-full overflow-hidden bg-[#EBF5EE] cursor-pointer"
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openDetail();
-          }
-        }}
-        aria-label={`Xem chi tiết bài thi ${destination.name}`}
+      <Link
+        href={detailUrl} prefetch={true}
+        className="relative aspect-4/3 w-full overflow-hidden bg-[#EBF5EE] block cursor-pointer"
+        aria-label={`Xem chi tiết điểm đến ${destination.name}`}
       >
         <DestinationImage
           region={destination.region}
@@ -73,37 +61,39 @@ export function DestinationCard({ destination, rank, index = 0 }: DestinationCar
             {destination.name}
           </h3>
         </div>
-      </div>
+      </Link>
 
       {/* Card Content & Action */}
       <div className="p-4 space-y-3 flex-1 flex flex-col justify-between bg-white">
-        <p
-          onClick={openDetail}
-          className="text-sm text-[#4B6354] leading-relaxed line-clamp-2 cursor-pointer hover:text-[#0E382B]"
+        <Link
+          href={detailUrl}
+          className="text-sm text-[#4B6354] leading-relaxed line-clamp-2 block hover:text-[#0E382B] transition-colors"
         >
           {destination.brief}
-        </p>
+        </Link>
 
         {/* Vote count and CTA Button */}
         <div className="pt-2 border-t border-black/5 flex items-center justify-between gap-2">
-          <div onClick={openDetail} className="cursor-pointer">
-            <span className="text-[10px] text-[#4B6354] block font-medium">Bình chọn</span>
+          <Link href={detailUrl} className="block group/vote">
+            <span className="text-[10px] text-[#4B6354] block font-medium group-hover/vote:text-[#026E4E]">
+              Bình chọn
+            </span>
             <span
               key={destination.votes}
               className="text-sm sm:text-base font-extrabold text-[#026E4E] inline-block transition-transform duration-300 animate-in zoom-in-95"
             >
               {destination.votes.toLocaleString("vi-VN")}
             </span>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={openDetail}
-              className="px-2.5 py-2 rounded-xl text-xs font-bold text-[#026E4E] bg-[#E6F1E8]/70 hover:bg-[#E6F1E8] transition-colors cursor-pointer"
-              title="Xem chi tiết bài thi"
+            <Link
+              href={detailUrl}
+              className="px-2.5 py-2 rounded-xl text-xs font-bold text-[#026E4E] bg-[#E6F1E8]/70 hover:bg-[#E6F1E8] transition-colors cursor-pointer inline-flex items-center"
+              title="Xem chi tiết điểm đến"
             >
               Chi tiết
-            </button>
+            </Link>
 
             <button
               onClick={(e) => {

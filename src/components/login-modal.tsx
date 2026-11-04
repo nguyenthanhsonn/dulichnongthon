@@ -1,16 +1,17 @@
 "use client";
+import type { Step } from "@/types/login-modal";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LoaderCircle, LockKeyhole, UserRound, X } from "lucide-react";
+import { toast } from "react-toastify";
 import { getRanking } from "@/data/mock";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { normalizePhone } from "@/lib/auth/authService";
-import { DAILY_VOTE_LIMIT, OTP_RESEND_SECONDS } from "@/lib/auth/config";
+import { DAILY_VOTE_LIMIT, DEMO_ACCOUNT, OTP_RESEND_SECONDS } from "@/lib/auth/config";
 import { useCountdown } from "@/hooks/useCountdown";
 
-type Step = "phone" | "otp" | "account";
 
 function parsePhone(raw: string): string {
   const clean = raw.trim().replace(/\s/g, "");
@@ -85,9 +86,14 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
     finally { if (mounted.current && token === request.current) setBusy(false); }
   };
 
+  const showValidationError = (message: string) => {
+    setError(message);
+    toast.error(message, { toastId: message });
+  };
+
   const send = async (event: FormEvent) => {
     event.preventDefault(); setPhoneTouched(true);
-    if (phoneError) { setError(phoneError); return; }
+    if (phoneError) { showValidationError(phoneError); return; }
     const normalized = normalizePhone(parsePhone(phone));
     await run(async () => {
       await auth.sendOtp(normalized);
@@ -104,15 +110,20 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
 
   const verify = async (event: FormEvent) => {
     event.preventDefault();
-    if (otp.join("").length !== 6) { setError("Vui lòng nhập đủ 6 chữ số mã OTP."); return; }
+    if (otp.join("").length !== 6) { showValidationError("Vui lòng nhập đủ 6 chữ số mã OTP."); return; }
     await run(async () => { await auth.verifyOtp(normalizedPhone, otp.join("")); if (standalone) router.push("/"); });
   };
 
   const submitAccount = async (event: FormEvent) => {
     event.preventDefault();
-    if (!username.trim() || !password) { setError("Vui lòng nhập tài khoản và mật khẩu."); return; }
+    if (!username.trim() || !password) { showValidationError("Vui lòng nhập tài khoản và mật khẩu."); return; }
     await run(async () => { await auth.loginWithAccount(username, password); if (standalone) router.push("/"); });
   };
+
+  const loginDemo = () => run(async () => {
+    await auth.loginWithAccount(DEMO_ACCOUNT.username, DEMO_ACCOUNT.password);
+    if (standalone) router.push("/");
+  });
 
   const enterDigits = (index: number, text: string) => {
     if (!/^\d*$/.test(text)) return;
@@ -123,7 +134,7 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
 
   const changeStep = (next: Step) => { setError(""); setStep(next); };
 
-  return <div className={standalone ? "auth-page" : "auth-overlay"} onPointerDown={event => { if (!standalone && event.target === event.currentTarget) close(); }} onKeyDown={event => {
+  return <div className={standalone ? "auth-page" : "auth-overlay modal-enter-overlay"} onPointerDown={event => { if (!standalone && event.target === event.currentTarget) close(); }} onKeyDown={event => {
     if (event.key === "Escape") { event.stopPropagation(); close(); }
     if (event.key === "Tab" && !standalone) {
       const controls = panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), a[href], summary');
@@ -131,7 +142,7 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
-  }}><div ref={panel} data-lenis-prevent className="auth-panel" role={standalone ? undefined : "dialog"} aria-modal={standalone ? undefined : true} aria-labelledby="auth-title" aria-describedby="auth-description">
+  }}><div ref={panel} data-lenis-prevent className={standalone ? "auth-panel" : "auth-panel modal-enter-panel"} role={standalone ? undefined : "dialog"} aria-modal={standalone ? undefined : true} aria-labelledby="auth-title" aria-describedby="auth-description">
     <div className="auth-topline"><Link href="/" aria-label="Du lịch Nông thôn - Trang chủ"><Image src="/logo.png" alt="Du lịch Nông thôn" width={34} height={34} className="rounded-full" /></Link><button className="auth-close" onClick={close} aria-label="Đóng đăng nhập"><X size={19} /></button></div>
     <div className="auth-intro"><h2 id="auth-title">{step === "otp" ? "Nhập mã OTP" : "Đăng nhập"}</h2><p id="auth-description">{step === "otp" ? <>Mã xác thực 6 số cho <strong>{normalizedPhone}</strong>.</> : step === "phone" ? "Nhập số điện thoại để nhận mã OTP." : "Nhập tài khoản và mật khẩu của bạn."}</p></div>
     {pendingDestination && <div className="auth-destination"><span>Đăng nhập xong sẽ bình chọn cho</span><strong>{pendingDestination.name}</strong></div>}
@@ -158,6 +169,16 @@ function LoginPanel({ standalone }: { standalone: boolean }) {
         </div>
       </div>
       <button className="vote-button auth-submit" type="submit" disabled={busy || auth.isLoading}>{busy ? <><LoaderCircle className="animate-spin" size={17} />Đang gửi mã…</> : <>Gửi mã OTP <ArrowRight size={17} /></>}</button>
+      {process.env.NODE_ENV === "development" && (
+        <button
+          className="auth-back"
+          type="button"
+          disabled={busy || auth.isLoading}
+          onClick={() => void loginDemo()}
+        >
+          <UserRound size={16} aria-hidden="true" /> Đăng nhập bằng tài khoản thử
+        </button>
+      )}
     </form>}
     {step === "otp" && <form className="auth-form" onSubmit={verify} noValidate>
       <fieldset className="otp-fieldset" disabled={busy}><legend>Mã xác thực 6 chữ số</legend><div className="otp-boxes">{otp.map((digit, index) => <input key={index} ref={element => { inputs.current[index] = element; }} aria-label={`Chữ số OTP ${index + 1}`} inputMode="numeric" autoComplete={index === 0 ? "one-time-code" : "off"} maxLength={6} value={digit} className={digit ? "is-filled" : ""} onChange={event => enterDigits(index, event.target.value)} onFocus={event => event.target.select()} onPaste={event => { event.preventDefault(); const value = event.clipboardData.getData("text").trim(); if (/^\d{1,6}$/.test(value)) enterDigits(index, value); }} onKeyDown={event => { if (event.key === "Backspace" && !digit && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowLeft" && index > 0) inputs.current[index - 1]?.focus(); if (event.key === "ArrowRight" && index < 5) inputs.current[index + 1]?.focus(); }} autoFocus={index === 0} />)}</div></fieldset>

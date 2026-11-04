@@ -1,5 +1,5 @@
 // Step 1: schema and source data. Selectors and UI migration belong to subsequent steps.
-export type { Destination, DestinationCategory, Region, RegionId, VoteRecord } from "./types";
+export type { Destination, DestinationCategory, Region, RegionId, VoteRecord } from "@/types/mock-destination";
 export { destinations } from "./destinations";
 export { regions } from "./regions";
 export { votes, createMockVotes, sumVotes, MOCK_VOTE_SEED, MOCK_VOTE_TOTAL } from "./votes";
@@ -7,8 +7,7 @@ export { contest, contestStats } from "./contest";
 
 import { destinations as sourceDestinations } from "./destinations";
 import { votes as baselineVotes } from "./votes";
-import type { Destination, VoteRecord } from "./types";
-export type RankedDestination = Destination & { votes: number };
+import type { RankedDestination, VoteRecord } from "@/types/mock-destination";
 /** Runtime vote records override the seeded baseline; equal counts sort by stable id. */
 export function getRanking(records: readonly VoteRecord[] = baselineVotes): RankedDestination[] {
   const totals = new Map(baselineVotes.map(record => [record.destinationId, record.votes]));

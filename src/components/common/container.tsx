@@ -1,9 +1,6 @@
-import React from "react";
+import type { ContainerProps } from "@/types/container";
 import { cn } from "@/lib/utils";
 
-interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-}
 
 export function Container({ className, children, ...props }: ContainerProps) {
   return (

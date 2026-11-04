@@ -1,4 +1,4 @@
-import type { Destination } from "./types";
+import type { Destination } from "@/types/mock-destination";
 
 // Extracted from Phụ lục 02, 27/10/2026. Image sources intentionally blank pending verified assets.
 export const destinations: Destination[] = [

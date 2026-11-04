@@ -1,7 +1,8 @@
-import { PageBackground } from "@/components/page-background";
+import { BackgroundVideo } from "@/components/background-video";
+import { CampaignContent } from "@/components/campaign-intro";
+import { SmoothScroll } from "@/components/smooth-scroll";
 import { SectionDivider } from "@/components/section-divider";
 import { AnimationProvider } from "@/components/animation-provider";
-import { SmoothScroll } from "@/components/smooth-scroll";
 import { VotingProvider } from "@/context/voting-context";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
@@ -13,38 +14,39 @@ import { LoginModal } from "@/components/login-modal";
 import { VoteModal } from "@/components/vote-modal";
 import { LeaderboardModal } from "@/components/leaderboard-modal";
 import { RulesModal } from "@/components/rules-modal";
-import { DestinationDetailModal } from "@/components/destination-detail-modal";
-import { Toast } from "@/components/toast";
-import { ScrollProgress } from "@/components/scroll-progress";
 import { BackToTop } from "@/components/back-to-top";
 
 export default function Home() {
   return (
     <VotingProvider>
-      <AnimationProvider />
+      <BackgroundVideo />
       <SmoothScroll />
-      <div className="page-shell relative isolate min-h-screen flex flex-col text-[#1B2B22]">
-        <PageBackground />
-        <ScrollProgress />
+      <AnimationProvider />
+      <div className="relative isolate min-h-screen flex flex-col bg-transparent text-[#1B2B22]">
         <Navbar />
-        <main className="flex-1">
+        <CampaignContent
+          footer={
+            <>
+              <SectionDivider fill="var(--bg-deep)" className="divider-to-deep" />
+              <Footer />
+            </>
+          }
+        >
           <Hero />
-          <SectionDivider fill="var(--bg-sage)" className="divider-to-sage" />
-          <Top3Leaderboard />
-          <SectionDivider fill="var(--bg-base)" className="divider-to-base" />
-          <DestinationGrid />
-          <SectionDivider fill="var(--bg-sky)" className="divider-to-sky" />
-          <HowToVote />
-        </main>
-        <SectionDivider fill="var(--bg-deep)" className="divider-to-deep" />
-        <Footer />
+          <SectionDivider fill="var(--campaign-green)" className="divider-to-sage" />
+          <div className="campaign-green-flow">
+            <Top3Leaderboard />
+            <SectionDivider fill="var(--campaign-green)" className="campaign-flow-wave" />
+            <DestinationGrid />
+            <SectionDivider fill="var(--campaign-green)" className="campaign-flow-wave" />
+            <HowToVote />
+          </div>
+        </CampaignContent>
         <BackToTop />
         <LoginModal />
         <VoteModal />
         <LeaderboardModal />
         <RulesModal />
-        <DestinationDetailModal />
-        <Toast />
       </div>
     </VotingProvider>
   );

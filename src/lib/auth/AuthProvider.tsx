@@ -1,33 +1,13 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { toast } from "react-toastify";
 import { getRanking } from "@/data/mock";
 import { formatCountdown, getNextResetAt, getTodayKey } from "@/lib/time";
 import { authService } from "./authService";
 import { ALLOW_REVOTE_NEXT_DAY, DAILY_VOTE_LIMIT } from "./config";
-import { AuthError, type AuthSnapshot, type Session } from "./types";
+import { AuthError } from "./auth-error";
+import type { AuthContextValue, AuthSnapshot, Session } from "@/types/auth";
 
-interface AuthContextValue {
-  user: Session | null;
-  isLoading: boolean;
-  isVoting: boolean;
-  loginModalOpen: boolean;
-  pendingDestinationId: string | null;
-  openLoginModal(destinationId?: string): void;
-  closeLoginModal(): void;
-  sendOtp(phone: string): Promise<void>;
-  verifyOtp(phone: string, otp: string): Promise<void>;
-  loginWithAccount(username: string, password: string): Promise<void>;
-  logout(): Promise<void>;
-  votesUsedToday: number;
-  votesLeftToday: number;
-  votedIdsToday: string[];
-  resetAt: number;
-  vote(destinationId: string): Promise<boolean>;
-  hasVoted(destinationId: string): boolean;
-  totals: AuthSnapshot["totals"];
-  toastMessage: string | null;
-  showToast(message: string): void;
-}
 const AuthContext = createContext<AuthContextValue | null>(null);
 const baseline = getRanking().map(item => ({ destinationId: item.id, votes: item.votes }));
 const initialSnapshot: AuthSnapshot = { user: null, daily: { date: "", votedIds: [] }, votedEver: [], totals: baseline, resetAt: 0 };
@@ -41,8 +21,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [pendingDestinationId, setPendingDestinationId] = useState<string | null>(null);
   const pending = useRef<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refreshSequence = useRef(0);
   const alive = useRef(true);
   const apply = useCallback((value: AuthSnapshot) => {
@@ -68,7 +46,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("storage", onStorage);
       window.removeEventListener("focus", onVisible);
       document.removeEventListener("visibilitychange", onVisible);
-      if (toastTimer.current) clearTimeout(toastTimer.current);
     };
   }, [refresh]);
   useEffect(() => {
@@ -80,12 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 1000);
     return () => { window.clearTimeout(timer); window.clearInterval(interval); };
   }, [snapshot.resetAt, refresh]);
-  const showToast = useCallback((message: string) => {
-    if (!alive.current) return;
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    setToastMessage(message);
-    toastTimer.current = setTimeout(() => { if (alive.current) setToastMessage(null); }, 5500);
-  }, []);
   const openLoginModal = useCallback((destinationId?: string) => {
     pending.current = destinationId ?? null;
     setPendingDestinationId(pending.current);
@@ -96,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPendingDestinationId(null);
     setLoginModalOpen(false);
   }, []);
-  const performVote = useCallback(async (destinationId: string, prefix = ""): Promise<boolean> => {
+  const performVote = useCallback(async (destinationId: string): Promise<boolean> => {
     if (voting.current) return false;
     voting.current = true;
     setIsVoting(true);
@@ -116,23 +87,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const committed = await authService.vote(destinationId);
       apply(committed);
       const name = getRanking().find(destination => destination.id === destinationId)?.name ?? "điểm đến";
-      showToast(`${prefix}Bình chọn thành công cho ${name}. Bạn còn ${Math.max(0, DAILY_VOTE_LIMIT - committed.daily.votedIds.length)} lượt hôm nay.`);
+      toast.success(`Bình chọn thành công cho ${name}. Bạn còn ${Math.max(0, DAILY_VOTE_LIMIT - committed.daily.votedIds.length)} lượt hôm nay.`);
       return true;
     } catch (error) {
       await refresh();
-      if (error instanceof AuthError && error.code === "limit") showToast(`${prefix}Bạn đã dùng hết ${DAILY_VOTE_LIMIT} lượt hôm nay. Lượt mới sau ${formatCountdown(getNextResetAt())}`);
-      else showToast(`${prefix}${error instanceof Error ? error.message : "Chưa thể bình chọn. Vui lòng thử lại."}`);
+      if (error instanceof AuthError && error.code === "limit") toast.error(`Bạn đã dùng hết ${DAILY_VOTE_LIMIT} lượt hôm nay. Lượt mới sau ${formatCountdown(getNextResetAt())}`);
+      else toast.error(error instanceof Error ? error.message : "Chưa thể bình chọn. Vui lòng thử lại.");
       return false;
     } finally {
       voting.current = false;
       if (alive.current) setIsVoting(false);
     }
-  }, [apply, openLoginModal, refresh, showToast]);
+  }, [apply, openLoginModal, refresh]);
   const vote = useCallback(async (destinationId: string) => {
-    if (isLoading) { showToast("Đang tải tài khoản. Vui lòng thử lại sau giây lát."); return false; }
+    if (isLoading) { toast.info("Đang tải tài khoản. Vui lòng thử lại sau giây lát."); return false; }
     if (!snapshotRef.current.user) { openLoginModal(destinationId); return false; }
     return performVote(destinationId);
-  }, [isLoading, openLoginModal, performVote, showToast]);
+  }, [isLoading, openLoginModal, performVote]);
   const finishLogin = useCallback(async () => {
     ++refreshSequence.current;
     apply(await authService.getSnapshot());
@@ -140,25 +111,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     pending.current = null;
     setPendingDestinationId(null);
     setLoginModalOpen(false);
-    showToast("Đăng nhập thành công");
-    if (waiting) await performVote(waiting, "Đăng nhập thành công. ");
-  }, [apply, performVote, showToast]);
-  const verifyOtp = useCallback(async (phone: string, otp: string) => {
-    await authService.verifyOtp(phone, otp);
-    await finishLogin();
+    toast.success("Đăng nhập thành công");
+    if (waiting) await performVote(waiting);
+  }, [apply, performVote]);
+  const completeLogin = useCallback(async (authenticate: () => Promise<Session>) => {
+    try {
+      await authenticate();
+      await finishLogin();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Đăng nhập thất bại. Vui lòng thử lại.");
+      throw error;
+    }
   }, [finishLogin]);
-  const loginWithAccount = useCallback(async (username: string, password: string) => {
-    await authService.verifyAccount(username, password);
-    await finishLogin();
-  }, [finishLogin]);
-  const logout = useCallback(async () => {
+  const verifyOtp = useCallback((phone: string, otp: string) =>
+    completeLogin(() => authService.verifyOtp(phone, otp)), [completeLogin]);
+  const loginWithAccount = useCallback((username: string, password: string) =>
+    completeLogin(() => authService.verifyAccount(username, password)), [completeLogin]);
+  const logout = useCallback(async (errorToastContainerId?: string) => {
     try {
       await authService.logout();
       closeLoginModal();
       await refresh();
-      showToast("Đã đăng xuất");
-    } catch (error) { showToast(error instanceof Error ? error.message : "Chưa thể đăng xuất."); }
-  }, [closeLoginModal, refresh, showToast]);
+      toast.success("Đã đăng xuất thành công.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Chưa thể đăng xuất.", { containerId: errorToastContainerId });
+    }
+  }, [closeLoginModal, refresh]);
   const votesUsedToday = snapshot.daily.votedIds.length;
   return <AuthContext.Provider value={{
     user: snapshot.user, isLoading, isVoting, loginModalOpen, pendingDestinationId,
@@ -166,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     votesUsedToday, votesLeftToday: Math.max(0, DAILY_VOTE_LIMIT - votesUsedToday),
     votedIdsToday: snapshot.daily.votedIds, resetAt: snapshot.resetAt,
     vote, hasVoted: destinationId => snapshot.daily.votedIds.includes(destinationId) || (!ALLOW_REVOTE_NEXT_DAY && snapshot.votedEver.includes(destinationId)),
-    totals: snapshot.totals, toastMessage, showToast,
+    totals: snapshot.totals,
   }}>{children}</AuthContext.Provider>;
 }
 export function useAuth() {

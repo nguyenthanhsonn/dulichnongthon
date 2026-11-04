@@ -1,3 +1,4 @@
+
 export const SITE_CONFIG = {
   name: "Du Lịch Nông Thôn",
   description: "Khám phá vẻ đẹp đồng quê, trải nghiệm văn hóa bản địa và các mô hình du lịch nông nghiệp sinh thái.",

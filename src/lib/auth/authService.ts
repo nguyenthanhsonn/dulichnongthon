@@ -1,7 +1,8 @@
 import { getRanking } from "../../data/mock";
 import { getNextResetAt, getTodayKey } from "../time";
-import { ALLOW_REVOTE_NEXT_DAY, AUTH_STORAGE_KEYS, DAILY_VOTE_LIMIT } from "./config";
-import { AuthError, type AuthService, type AuthSnapshot, type DailyVoteState, type Session, type VoteEvent } from "./types";
+import { ALLOW_REVOTE_NEXT_DAY, AUTH_STORAGE_KEYS, DAILY_VOTE_LIMIT, DEMO_ACCOUNT } from "./config";
+import { AuthError } from "./auth-error";
+import type { AuthService, AuthSnapshot, DailyVoteState, ServiceOptions, Session, VoteEvent } from "@/types/auth";
 
 export function normalizePhone(phone: string): string {
   const clean = phone.replace(/\s/g, "");
@@ -9,13 +10,6 @@ export function normalizePhone(phone: string): string {
     throw new AuthError("phone", "Số điện thoại Việt Nam không hợp lệ. Vui lòng kiểm tra lại.");
   }
   return clean.startsWith("+84") ? `0${clean.slice(3)}` : clean;
-}
-interface KeyValueStorage { getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void; }
-interface ServiceOptions {
-  storage?: () => KeyValueStorage | null;
-  now?: () => number;
-  sendDelayMs?: number;
-  allowRevoteNextDay?: boolean;
 }
 let fallbackLock: Promise<void> = Promise.resolve();
 async function exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -109,8 +103,8 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
       return createSession(normalized);
     },
     async verifyAccount(username, password) {
-      if (username.trim() !== "nongthon2026" || password !== "Nongthon2026!") throw new AuthError("account", "Tài khoản hoặc mật khẩu không đúng.");
-      return createSession("0900002026");
+      if (username.trim() !== DEMO_ACCOUNT.username || password !== DEMO_ACCOUNT.password) throw new AuthError("account", "Tài khoản hoặc mật khẩu không đúng.");
+      return createSession(DEMO_ACCOUNT.phone);
     },
     async getSession() { return session(); },
     async getSnapshot() { return makeSnapshot(); },

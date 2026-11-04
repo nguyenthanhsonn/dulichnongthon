@@ -1,27 +1,23 @@
 "use client";
+import type { SortOption } from "@/types/destination-grid";
 
 import React, { useState, useMemo } from "react";
 import { useVoting } from "@/context/voting-context";
 import { DestinationCard } from "./destination-card";
-import { Search, Compass, SlidersHorizontal, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from "lucide-react";
+import { Search, Compass, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from "lucide-react";
 
-type SortOption = "votes-desc" | "name-asc" | "code-asc";
 
-const ITEMS_PER_PAGE = 12; // Dàn 4 cột x 3 hàng = 12 điểm đến / trang (hiển thị lật 3 lớp trang cho 35 điểm)
+const ITEMS_PER_PAGE = 8;
+const VISIBLE_PAGE_COUNT = 3;
 
 export function DestinationGrid() {
   const { destinations } = useVoting();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("votes-desc");
+  const [sortBy] = useState<SortOption>("votes-desc");
   const [currentPage, setCurrentPage] = useState(1);
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    setCurrentPage(1);
-  };
-
-  const handleSortChange = (sort: SortOption) => {
-    setSortBy(sort);
     setCurrentPage(1);
   };
 
@@ -73,6 +69,8 @@ export function DestinationGrid() {
   const totalItems = filteredDestinations.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
+  const firstVisiblePage = Math.max(1, Math.min(safeCurrentPage - 1, totalPages - VISIBLE_PAGE_COUNT + 1));
+  const visiblePageCount = Math.min(totalPages, VISIBLE_PAGE_COUNT);
   const startIndex = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
   const currentItems = filteredDestinations.slice(startIndex, endIndex);
@@ -80,14 +78,6 @@ export function DestinationGrid() {
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
-      const el = document.getElementById("destinations");
-      if (el) {
-        if (typeof window !== "undefined" && window.__lenis) {
-          window.__lenis.scrollTo(el, { offset: -70 });
-        } else {
-          el.scrollIntoView({ behavior: "smooth" });
-        }
-      }
     }
   };
 
@@ -105,51 +95,32 @@ export function DestinationGrid() {
           </h2>
         </div>
 
-        {/* Thanh tìm kiếm & Sắp xếp (Bỏ lọc 3 miền, tập trung tìm kiếm nhanh theo mã hoặc tên) */}
-        <div className="destination-filters bg-[#F4FAF6] rounded-3xl p-4 sm:p-5 border border-[#026E4E]/12 shadow-xs">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {/* Thanh tìm kiếm nổi bật */}
-            <div className="relative min-w-0 flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B6354]" />
-              <input
-                type="text"
-                aria-label="Tìm kiếm điểm đến, mã số dự thi hoặc tỉnh thành"
-                placeholder="Nhập tên điểm đến, mã số (DLNT01, DLNT02...) hoặc tỉnh thành..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-11 pr-10 py-3 rounded-2xl sm:rounded-full bg-white border border-[#026E4E]/20 text-sm font-medium text-[#0E382B] placeholder:text-[#4B6354]/60 focus:outline-none focus:ring-2 focus:ring-[#026E4E] shadow-2xs"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => handleSearchChange("")}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-neutral-100 text-[#4B6354] cursor-pointer"
-                  title="Xóa tìm kiếm"
-                  aria-label="Xóa tìm kiếm"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Sắp xếp */}
-            <div className="relative shrink-0 sm:w-56">
-              <select
-                aria-label="Sắp xếp điểm đến"
-                value={sortBy}
-                onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                className="w-full appearance-none pl-4 pr-10 py-3 rounded-2xl sm:rounded-full bg-white border border-[#026E4E]/20 text-xs sm:text-sm text-[#0E382B] font-bold focus:outline-none focus:ring-2 focus:ring-[#026E4E] shadow-2xs cursor-pointer"
+        {/* Thanh tìm kiếm */}
+        <div className="destination-filters w-full max-w-xl bg-[#F4FAF6] rounded-3xl p-3 sm:p-4 border border-[#026E4E]/12 shadow-xs">
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B6354]" />
+            <input
+              type="text"
+              aria-label="Tìm kiếm điểm đến, mã số dự thi hoặc tỉnh thành"
+              placeholder="Tìm theo tên, mã số hoặc tỉnh thành…"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-11 pr-10 py-3 rounded-2xl sm:rounded-full bg-white border border-[#026E4E]/20 text-sm font-medium text-[#0E382B] placeholder:text-[#4B6354]/60 focus:outline-none focus:ring-2 focus:ring-[#026E4E] shadow-2xs"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => handleSearchChange("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-neutral-100 text-[#4B6354] cursor-pointer"
+                title="Xóa tìm kiếm"
+                aria-label="Xóa tìm kiếm"
               >
-                <option value="votes-desc">Lượt vote cao nhất</option>
-                <option value="name-asc">Tên theo thứ tự A-Z</option>
-                <option value="code-asc">Theo mã số (DLNT...)</option>
-              </select>
-              <SlidersHorizontal className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#4B6354]" />
-            </div>
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* 35 Destination Cards Grid (Dàn 4x3: 4 cột desktop x 3 hàng = 12 thẻ, hiển thị lật 3 lớp trang) */}
         {totalItems > 0 ? (
           <div className="space-y-10">
             <div
@@ -169,7 +140,7 @@ export function DestinationGrid() {
             {/* Phân trang (Pagination Controls) - Thiết kế squircle chuẩn mẫu hình ảnh */}
             <div className="pt-8 border-t border-[#026E4E]/12 flex flex-col items-center justify-center gap-4">
               {/* Dải điều khiển chuyển trang squircle bo tròn như ảnh mẫu */}
-              <div className="destination-pagination-wrap inline-flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl bg-[#E6F1E8] border border-[#026E4E]/10 shadow-xs max-w-full overflow-x-auto">
+              <div className="destination-pagination destination-pagination-wrap inline-flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl bg-[#E6F1E8] border border-[#026E4E]/10 shadow-xs max-w-full overflow-x-auto">
                 {/* Về trang đầu « */}
                 <button
                   onClick={() => handlePageChange(1)}
@@ -195,7 +166,7 @@ export function DestinationGrid() {
 
                 {/* Các nút số trang 1, 2, 3... */}
                 <div className="flex items-center gap-1 sm:gap-1.5">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  {Array.from({ length: visiblePageCount }, (_, i) => firstVisiblePage + i).map((pageNum) => {
                     const isActive = pageNum === safeCurrentPage;
                     return (
                       <button

@@ -8,19 +8,24 @@ import { X, Heart, AlertCircle, CheckCircle2 } from "lucide-react";
 export function VoteModal() {
   const { voteModalDestination, setVoteModalDestination, confirmVote, user, loginModalOpen } = useVoting();
 
+  const panel = React.useRef<HTMLDivElement>(null);
   const isOpen = Boolean(voteModalDestination && !loginModalOpen && user);
 
   React.useEffect(() => {
     if (!isOpen) return;
+    const previousFocus = document.activeElement;
     const previousOverflow = document.body.style.overflow;
+    const lenis = window.__lenis;
+    const resumeLenis = lenis && !lenis.isStopped;
     document.body.style.overflow = "hidden";
-    if (typeof window !== "undefined" && window.__lenis) {
-      window.__lenis.stop();
-    }
+    if (resumeLenis) lenis.stop();
+    panel.current?.focus({ preventScroll: true });
+
     return () => {
       document.body.style.overflow = previousOverflow;
-      if (typeof window !== "undefined" && window.__lenis) {
-        window.__lenis.start();
+      if (resumeLenis) lenis.start();
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) {
+        previousFocus.focus({ preventScroll: true });
       }
     };
   }, [isOpen]);
@@ -35,47 +40,70 @@ export function VoteModal() {
   };
 
   return (
-    <div className="responsive-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-200">
-      {/* Modal Card Glassmorphism */}
+    <div
+      className="modal-enter-overlay responsive-modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-emerald-950/65 p-4 backdrop-blur-sm"
+      onClick={event => {
+        if (event.target === event.currentTarget) setVoteModalDestination(null);
+      }}
+    >
       <div
+        ref={panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="vote-modal-title"
+        tabIndex={-1}
         data-lenis-prevent
-        className="responsive-modal-panel relative w-full max-w-md rounded-3xl bg-white/75 backdrop-blur-2xl border border-white/90 p-7 sm:p-9 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_2px_0_rgba(255,255,255,0.95)] space-y-6"
+        onKeyDown={event => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            setVoteModalDestination(null);
+          }
+          if (event.key === "Tab") {
+            const buttons = panel.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)");
+            if (!buttons?.length) return;
+            const first = buttons[0];
+            const last = buttons[buttons.length - 1];
+            const active = document.activeElement;
+            if (active === panel.current || (event.shiftKey ? active === first : active === last)) {
+              event.preventDefault();
+              (event.shiftKey ? last : first).focus();
+            }
+          }
+        }}
+        className="modal-enter-panel responsive-modal-panel relative w-full max-w-md space-y-4 rounded-3xl border border-[#8EB69B] bg-linear-to-br from-[#F5FBF5] to-(--campaign-green) p-5 text-emerald-950 shadow-2xl shadow-emerald-950/40 outline-none sm:p-6"
       >
-        {/* Close Button Glassmorphic */}
         <button
+          type="button"
           onClick={() => setVoteModalDestination(null)}
-          className="absolute right-5 top-5 p-2 rounded-full bg-white/60 hover:bg-white text-[#1B2B22] border border-white/80 shadow-xs backdrop-blur-md transition-all cursor-pointer"
-          aria-label="Đóng"
+          className="absolute top-3 right-3 grid size-11 cursor-pointer place-items-center text-red-700 hover:text-red-900 focus-visible:outline-2 focus-visible:outline-red-700"
+          aria-label="Đóng xác nhận bình chọn"
         >
-          <X className="h-5 w-5" />
+          <X aria-hidden="true" className="size-5" strokeWidth={2.5} />
         </button>
 
-        {/* Header Icon */}
-        <div className="text-center space-y-2">
-          <div className="mx-auto h-16 w-16 rounded-full bg-[#FF9F00]/15 border border-[#FF9F00]/30 flex items-center justify-center text-[#FF9F00] mb-2 shadow-xs">
-            <Heart className="h-8 w-8 fill-[#FF9F00]" />
+        <header className="flex items-center gap-3 pr-10">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-(--campaign-pine) text-lime-100 shadow-md shadow-emerald-900/20">
+            <Heart aria-hidden="true" className="size-5 fill-current" />
+          </span>
+          <div>
+            <p className="text-[11px] font-extrabold tracking-widest text-emerald-800 uppercase">Điểm đến yêu thích</p>
+            <h3 id="vote-modal-title" className="text-xl font-extrabold tracking-tight sm:text-2xl">Xác nhận bình chọn</h3>
           </div>
-          <h3 className="text-2xl font-black text-[#1B2B22] tracking-tight">
-            Xác nhận bình chọn
-          </h3>
-          <p className="text-xs sm:text-sm text-[#4B5E52] font-medium">
-            Bạn đang thực hiện quyền bình chọn cho điểm đến du lịch nông thôn
-          </p>
-        </div>
+        </header>
 
         {/* Destination Card Preview */}
-        <div className="rounded-2xl overflow-hidden bg-white/80 backdrop-blur-md border border-white/90 shadow-xs">
+        <div className="overflow-hidden rounded-2xl border border-emerald-900/15 bg-[#F5FBF5] shadow-sm">
           <div className="relative aspect-video w-full">
             <DestinationImage
-          region={voteModalDestination.region}
+              region={voteModalDestination.region}
               src={voteModalDestination.imageUrl}
               alt={voteModalDestination.name}
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/95 via-emerald-950/30 to-transparent" />
             <div className="absolute bottom-3 left-4 right-4 text-white">
-              <span className="text-[10px] font-bold text-[#5BB5E8] uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-lime-200 uppercase tracking-wider">
                 {voteModalDestination.code} • {voteModalDestination.province}
               </span>
               <h4 className="font-extrabold text-base leading-tight">
@@ -83,7 +111,7 @@ export function VoteModal() {
               </h4>
             </div>
           </div>
-          <div className="p-3.5 bg-white/70 flex items-center justify-between text-xs font-semibold text-[#1B2B22]">
+          <div className="flex flex-wrap items-center justify-between gap-1 px-4 py-3 text-xs font-semibold text-emerald-950">
             <span className="text-[#4B5E52]">Lượt bình chọn hiện tại:</span>
             <span className="text-[#1F6B45] font-black text-sm">
               {voteModalDestination.votes.toLocaleString("vi-VN")} lượt
@@ -93,8 +121,8 @@ export function VoteModal() {
 
         {/* Voting Allowance Notice */}
         {votesLeft > 0 && !isVoted ? (
-          <div className="p-3.5 rounded-2xl bg-white/70 backdrop-blur-md border border-white/80 space-y-1 shadow-2xs">
-            <div className="flex items-center justify-between text-xs">
+          <div className="space-y-1 rounded-2xl border border-emerald-900/15 bg-[#F5FBF5]/85 p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
               <span className="text-[#4B5E52] font-medium">Lượt bình chọn còn lại của bạn:</span>
               <span className="font-black text-[#1F6B45] bg-[#1F6B45]/10 px-2 py-0.5 rounded-full">
                 {votesLeft} lượt
@@ -120,16 +148,14 @@ export function VoteModal() {
         <div className="flex gap-3">
           <button
             onClick={() => setVoteModalDestination(null)}
-            className="w-1/3 py-3 rounded-2xl bg-white/75 hover:bg-white text-[#1B2B22] border border-white/80 text-xs sm:text-sm font-bold shadow-xs backdrop-blur-md transition-colors cursor-pointer"
+            className="min-h-11 cursor-pointer rounded-xl border border-emerald-800/25 bg-white/60 px-4 text-sm font-bold text-emerald-900 hover:bg-white focus-visible:outline-2 focus-visible:outline-emerald-800"
           >
             Hủy
           </button>
           <button
             onClick={handleConfirm}
             disabled={votesLeft <= 0 || isVoted}
-            className={`vote-button w-2/3 py-3 rounded-2xl font-black text-xs sm:text-sm cursor-pointer ${
-              votesLeft <= 0 || isVoted ? "is-voted" : ""
-            }`}
+            className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-(--campaign-pine) px-3 text-sm font-extrabold text-white shadow-md shadow-emerald-900/20 hover:bg-(--campaign-deep) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Heart className="h-4 w-4 fill-current" />
             <span>Xác nhận bình chọn</span>

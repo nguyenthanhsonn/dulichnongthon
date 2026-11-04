@@ -1,8 +1,8 @@
 "use client";
+import type { DestinationImageProps } from "@/types/destination-image";
 import Image from "next/image";
 import { useState } from "react";
 import { Sprout } from "lucide-react";
-interface DestinationImageProps { src: string; alt: string; fill?: boolean; sizes?: string; className?: string; region?: string; priority?: boolean; }
 export function DestinationImage({ src, alt, sizes, className = "", region = "bac", priority = false }: DestinationImageProps) {
   const [failedSource, setFailedSource] = useState<string | null>(null);
   if (src && failedSource !== src) return <Image src={src} alt={alt} fill sizes={sizes ?? "(max-width: 767px) 100vw, 33vw"} className={className} priority={priority} onError={() => setFailedSource(src)} />;

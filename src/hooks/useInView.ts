@@ -1,6 +1,6 @@
 "use client";
+import type { InViewOptions } from "@/types/in-view";
 import { useEffect, useRef, useState } from "react";
-interface InViewOptions { threshold?: number; once?: boolean; }
 export function useInView<T extends HTMLElement = HTMLDivElement>({ threshold = .35, once = true }: InViewOptions = {}) {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);
