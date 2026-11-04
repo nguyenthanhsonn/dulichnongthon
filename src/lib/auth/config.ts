@@ -3,7 +3,6 @@ export const ALLOW_REVOTE_NEXT_DAY = true;
 export const OTP_RESEND_SECONDS = 60;
 export const DEMO_ACCOUNT = {
   email: "demo@dulichnongthon.vn",
-  password: "Nongthon2026!",
 } as const;
 export const AUTH_STORAGE_KEYS = {
   session: "dlnt2026:session",

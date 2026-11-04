@@ -21,7 +21,7 @@ export interface VoteEvent {
 }
 
 export interface AuthService {
-  sendOtp(email: string, password: string): Promise<void>;
+  sendOtp(email: string): Promise<void>;
   verifyOtp(email: string, otp: string): Promise<Session>;
   logout(): Promise<void>;
   getSession(): Promise<Session | null>;
@@ -39,7 +39,7 @@ export interface AuthContextValue {
   pendingDestinationId: string | null;
   openLoginModal(destinationId?: string): void;
   closeLoginModal(): void;
-  sendOtp(email: string, password: string): Promise<void>;
+  sendOtp(email: string): Promise<void>;
   verifyOtp(email: string, otp: string): Promise<void>;
   logout(errorToastContainerId?: string): Promise<void>;
   votesUsedToday: number;

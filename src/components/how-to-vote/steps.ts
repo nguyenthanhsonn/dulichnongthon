@@ -16,7 +16,7 @@ export const STEPS: VotingStep[] = [
   {
     step: 3,
     title: "Đăng nhập và xác thực OTP",
-    desc: "Nhập email, mật khẩu rồi xác nhận mã OTP 6 số gửi qua email.",
+    desc: "Nhập email đã có tài khoản rồi xác nhận mã OTP 6 số gửi qua email.",
     note: "01 tài khoản • Tối đa 3 lượt vote",
   },
   {

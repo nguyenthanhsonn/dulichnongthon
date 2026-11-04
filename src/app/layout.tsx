@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata, Viewport } from "next";
 import { Toast } from "@/components/toast";
+import DevToolsGuard from "@/components/DevToolsGuard";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
         />
       </head>
       <body className="isolate min-h-screen bg-bg-base text-[#1B2B22] font-sans antialiased selection:bg-[#7CB342]/20 selection:text-[#1F6B45]">
+        <DevToolsGuard />
         {children}
         <Toast />
       </body>

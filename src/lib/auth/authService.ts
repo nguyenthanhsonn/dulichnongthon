@@ -95,10 +95,10 @@ export function createMockAuthService(options: ServiceOptions = {}): AuthService
     return value;
   }
   return {
-    async sendOtp(email, password) {
+    async sendOtp(email) {
       const normalized = normalizeEmail(email);
-      if (normalized !== DEMO_ACCOUNT.email || password !== DEMO_ACCOUNT.password) {
-        throw new AuthError("account", "Email hoặc mật khẩu không đúng.");
+      if (normalized !== DEMO_ACCOUNT.email) {
+        throw new AuthError("account", "Email chưa tồn tại. Vui lòng kiểm tra lại email.");
       }
       pendingEmail = null;
       await new Promise<void>(resolve => setTimeout(resolve, options.sendDelayMs ?? 800));

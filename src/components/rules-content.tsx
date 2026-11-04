@@ -156,7 +156,7 @@ export function RulesSteps() {
           <div>
             <h5 className="font-extrabold text-[#0E382B]">Đăng nhập & Xác thực OTP</h5>
             <p className="text-xs text-[#4B6354] mt-0.5">
-              Nhập email, mật khẩu và mã OTP 6 chữ số gửi qua email để kích hoạt quyền bình chọn.
+              Nhập email đã có tài khoản và xác nhận mã OTP 6 chữ số gửi qua email để kích hoạt quyền bình chọn.
             </p>
           </div>
         </div>
