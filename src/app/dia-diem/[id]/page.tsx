@@ -1,9 +1,3 @@
-import { redirect } from "next/navigation";
+import DestinationRedirectView from "@/views/destination/destination-redirect-view";
 
-import type { PageProps } from "@/types/destination-route";
-
-export default async function DiaDiemRedirectPage({ params }: PageProps) {
-  const { id } = await params;
-  redirect(`/diem-den/${id}`);
-}
-
+export default DestinationRedirectView;
