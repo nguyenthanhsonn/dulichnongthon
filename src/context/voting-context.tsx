@@ -1,6 +1,7 @@
 "use client";
 import type { VotingContextType } from "@/types/voting-context";
 import { createContext, useContext, useState, type ReactNode } from "react";
+import { getVotingStatus } from "@/data/mock/contest";
 import { getRanking } from "@/data/mock";
 import { toVotingDestination } from "@/data/destinations";
 import type { Destination } from "@/types/voting-destination";
@@ -17,7 +18,7 @@ function VotingBridge({ children }: { children: ReactNode }) {
   const [rulesModalOpen, setRulesModalOpen] = useState(false);
   const user = auth.user ? { email: auth.user.email, votesRemaining: auth.votesLeftToday, votedIds: auth.votedIdsToday } : null;
   const handleVoteClick = (destination: Destination) => {
-    if (!auth.user || auth.hasVoted(destination.id) || auth.votesLeftToday === 0) {
+    if (getVotingStatus() !== "open" || !auth.user || auth.hasVoted(destination.id) || auth.votesLeftToday === 0) {
       void auth.vote(destination.id);
       return;
     }

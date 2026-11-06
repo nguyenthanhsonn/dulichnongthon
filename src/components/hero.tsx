@@ -2,16 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowUpRight, Timer } from "lucide-react";
+import { contest, getVotingStatus } from "@/data/mock/contest";
 import { RevealOnScroll } from "./reveal-on-scroll";
 
 export function Hero() {
-  const [remaining, setRemaining] = useState<number | null>(null);
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
-    const tick = () =>
-      setRemaining(
-        Math.max(0, new Date("2026-11-20T23:59:59+07:00").getTime() - Date.now())
-      );
+    const tick = () => setNow(Date.now());
     tick();
     const timer = setInterval(tick, 1000);
 
@@ -20,6 +18,9 @@ export function Hero() {
     };
   }, []);
 
+  const status = now === null ? null : getVotingStatus(now);
+  const deadline = status === "upcoming" ? contest.startsAt : contest.endsAt;
+  const remaining = now === null ? null : Math.max(0, Date.parse(deadline) - now);
   const values =
     remaining === null
       ? [null, null, null, null]
@@ -81,7 +82,9 @@ export function Hero() {
         <RevealOnScroll className="hero-countdown">
           <p className="mb-4 flex items-center justify-center gap-2.5 text-center text-sm font-extrabold uppercase tracking-wider text-white sm:text-base">
             <Timer aria-hidden="true" className="size-5 shrink-0 text-[#FF9F00]" />
-            {remaining === 0 ? "Bình chọn đã kết thúc" : "Thời gian bình chọn còn lại"}
+            {status === "closed" ? "Bình chọn đã kết thúc" :
+              status === "upcoming" ? "Thời gian đến khi mở bình chọn" :
+              "Thời gian bình chọn còn lại"}
           </p>
 
           <dl className="grid grid-cols-4 gap-1.5 sm:gap-2.5">

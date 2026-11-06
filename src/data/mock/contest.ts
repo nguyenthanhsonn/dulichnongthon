@@ -4,8 +4,8 @@ import { sumVotes } from "./votes";
 
 export const contest = {
   name: "Cuộc thi Du lịch Nông thôn 2026",
-  startsAt: "2026-10-15T00:00:00+07:00",
-  endsAt: "2026-11-20T23:59:59+07:00",
+  startsAt: "2026-11-07T00:00:00+07:00",
+  endsAt: "2026-11-21T00:00:00+07:00",
   timezone: "Asia/Ho_Chi_Minh",
   maxVotesPerAccount: 3,
   maxVotesPerDestination: 1,
@@ -27,3 +27,9 @@ export const contestStats = {
   regionCount: regions.length,
   totalVotes: sumVotes(),
 };
+
+export function getVotingStatus(now = Date.now()) {
+  if (now < Date.parse(contest.startsAt)) return "upcoming";
+  if (now >= Date.parse(contest.endsAt)) return "closed";
+  return "open";
+}

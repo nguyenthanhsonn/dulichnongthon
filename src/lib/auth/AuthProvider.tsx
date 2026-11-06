@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "react-toastify";
+import { getVotingStatus } from "@/data/mock/contest";
 import { getRanking } from "@/data/mock";
 import { formatCountdown, getNextResetAt, getTodayKey } from "@/lib/time";
 import { authService } from "./authService";
@@ -8,6 +9,15 @@ import { ALLOW_REVOTE_NEXT_DAY, DAILY_VOTE_LIMIT } from "./config";
 import { AuthError } from "./auth-error";
 import { useVotingStore } from "@/stores/use-voting-store";
 import type { AuthContextValue, AuthSnapshot, Session } from "@/types/auth";
+
+function checkVotingWindow() {
+  const status = getVotingStatus();
+  if (status === "open") return true;
+  toast.info(status === "upcoming"
+    ? "Bình chọn mở lúc 00:00 ngày 07/11/2026 (giờ Việt Nam)."
+    : "Bình chọn đã kết thúc.");
+  return false;
+}
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -56,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { window.clearTimeout(timer); window.clearInterval(interval); };
   }, [snapshot.resetAt, refresh]);
   const openLoginModal = useCallback((destinationId?: string) => {
+    if (destinationId && !checkVotingWindow()) return;
     pending.current = destinationId ?? null;
     setPendingDestinationId(pending.current);
     setLoginModalOpen(true);
@@ -66,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoginModalOpen(false);
   }, []);
   const performVote = useCallback(async (destinationId: string): Promise<boolean> => {
-    if (voting.current) return false;
+    if (voting.current || !checkVotingWindow()) return false;
     voting.current = true;
     setIsVoting(true);
     try {
